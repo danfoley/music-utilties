@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 2,
+  "id": "mixed-seventh-chords",
+  "name": "Mixed Seventh Chords",
+  "title": "Mixed Seventh Chords — 32 Bars",
+  "key": "C",
+  "style": "Medium Swing",
+  "timeSignature": "4/4",
+  "bars": 32,
+  "barsPerLine": 4,
+  "barsPerSelection": 2,
+  "strategy": {
+    "type": "mixed-qualities",
+    "roots": [
+      "C",
+      "F",
+      "Bb",
+      "Eb",
+      "Ab",
+      "Db",
+      "Gb",
+      "B",
+      "E",
+      "A",
+      "D",
+      "G"
+    ],
+    "qualities": [
+      {
+        "value": "7",
+        "label": "7"
+      },
+      {
+        "value": "^7",
+        "label": "^7"
+      },
+      {
+        "value": "-7",
+        "label": "-7"
+      },
+      {
+        "value": "h7",
+        "label": "h7"
+      },
+      {
+        "value": "o7",
+        "label": "o7"
+      },
+      {
+        "value": "7#9",
+        "label": "7#9"
+      },
+      {
+        "value": "7#11",
+        "label": "7#11"
+      },
+      {
+        "value": "7b9",
+        "label": "7b9"
+      },
+      {
+        "value": "7b5",
+        "label": "7b5"
+      },
+      {
+        "value": "7b9#9",
+        "label": "7b9#9"
+      },
+      {
+        "value": "7#5",
+        "label": "7#5"
+      },
+      {
+        "value": "7sus",
+        "label": "7sus"
+      }
+    ],
+    "defaultQualities": [
+      "7",
+      "^7",
+      "-7",
+      "h7",
+      "o7",
+      "7#9",
+      "7#11",
+      "7b9",
+      "7b5",
+      "7b9#9",
+      "7#5",
+      "7sus"
+    ],
+    "rootModes": [
+      {
+        "value": "fourths",
+        "label": "Circle of fourths"
+      },
+      {
+        "value": "random",
+        "label": "Random roots"
+      }
+    ],
+    "defaultRootMode": "fourths",
+    "defaultStart": "Eb",
+    "balanced": true
+  },
+  "playlist": {
+    "titleTemplate": "{name} {number}",
+    "minCharts": 2,
+    "maxCharts": 50
+  },
+  "validation": {
+    "balancedQualities": true
+  }
+}
