@@ -130,3 +130,9 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
  .workspace .generator-toolbar .generator-picker{flex:1 1 100%;min-width:0}
  .workspace .generator-toolbar #manage-generators{align-self:flex-start}
 }
+
+/* Playlist-only random starting root occupies its own full row. */
+#circle-options #random-start-label:not([hidden]){
+  flex:0 0 100%;width:100%;max-width:none;align-self:flex-start;
+  justify-content:flex-start;min-height:30px;margin-top:2px;
+}
