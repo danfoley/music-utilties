@@ -70,5 +70,34 @@ window.JazzChartCore = (() => {
     if (!chords.length) throw Error("No usable chord symbols in mistakes JSON");
     return chords;
   }
-  return Object.freeze({ PITCH, shuffle, cycleSequence, parseMistakeChords });
+  // Distribute selected qualities as evenly as possible over the chart.
+  // All 16 two-bar slots are used; roots and qualities are independent.
+  function mixedSequence(definition, selectedQualities, rootMode, startingRoot) {
+    const st = definition.strategy;
+    const slots = definition.bars / definition.barsPerSelection;
+    const available = st.qualities.map((q) => typeof q === "string" ? q : q.value);
+    if (!Array.isArray(selectedQualities) || !selectedQualities.length ||
+        selectedQualities.some((q) => !available.includes(q)) ||
+        new Set(selectedQualities).size !== selectedQualities.length)
+      throw Error("Select at least one valid chord quality");
+    if (!st.rootModes.some((mode) => mode.value === rootMode))
+      throw Error("Invalid root mode");
+    if (!(startingRoot in PITCH)) throw Error("Invalid starting root");
+    const qualities = [];
+    for (let i = 0; i < slots; i++)
+      qualities.push(selectedQualities[i % selectedQualities.length]);
+    const balanced = shuffle(qualities);
+    const byPitch = new Map(st.roots.map((root) => [PITCH[root], root]));
+    const roots = rootMode === "fourths"
+      ? Array.from({ length: slots }, (_, i) => {
+          const pitch = (PITCH[startingRoot] + i * 5) % 12;
+          return i === 0 ? startingRoot : byPitch.get(pitch);
+        })
+      : [startingRoot, ...Array.from({ length: slots - 1 }, () =>
+          st.roots[Math.floor(Math.random() * st.roots.length)])];
+    if (roots.some((root) => !root)) throw Error("Root cycle is incomplete");
+    return roots.map((root, i) => root + balanced[i]);
+  }
+
+  return Object.freeze({ PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence });
 })();
