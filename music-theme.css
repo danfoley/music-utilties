@@ -1,0 +1,31 @@
+/* Shared color themes for Music Utilities. Applied across the launcher and both apps. */
+.mu-theme-control{display:inline-flex;align-items:center;gap:8px;color:#d5e4e7;font:600 12px "Avenir Next",Avenir,system-ui,sans-serif;margin-left:8px}
+.mu-theme-control select{font:600 13px "Avenir Next",Avenir,system-ui,sans-serif;background:#f6fbfa;color:#173e46;border:1px solid #8ba8af;border-radius:8px;padding:7px 28px 7px 10px;min-height:36px;cursor:pointer}
+.mu-theme-control select:focus-visible{outline:3px solid #f4bc6a;outline-offset:2px}
+@media(max-width:750px){.mu-theme-control{margin-left:0}.mu-theme-control span{display:none}}
+/* Ocean is the original design; Forest and Plum offer distinct palettes. */
+html[data-mu-theme="forest"]{filter:none}
+html[data-mu-theme="forest"] body{background:linear-gradient(180deg,#e4eee6 0,#f0f4ed 280px)!important;color:#253a2c}
+html[data-mu-theme="forest"] .mu-nav{background:#203e32!important;border-bottom-color:#4b6957!important}
+html[data-mu-theme="forest"] .mu-brand-mark{background:#e1edcf!important;color:#31553a!important}
+html[data-mu-theme="forest"] .mu-link[aria-current="page"]{background:#e3eed8!important;color:#2c4c33!important;border-color:#e3eed8!important}
+html[data-mu-theme="forest"] .mu-link:hover{background:#365c47!important}
+html[data-mu-theme="forest"] .app-card:hover,html[data-mu-theme="forest"] .panel:hover{border-color:#91b59b}
+html[data-mu-theme="forest"] .app-icon,html[data-mu-theme="forest"] .version{background:#e5f0df!important;color:#386b46!important}
+html[data-mu-theme="forest"] .open,html[data-mu-theme="forest"] .eyebrow,html[data-mu-theme="forest"] .studio-kicker{color:#3d7551!important}
+html[data-mu-theme="forest"] button.primary,html[data-mu-theme="forest"] .action-link.primary{background:#376d4e!important;border-color:#376d4e!important}
+html[data-mu-theme="forest"] .period,html[data-mu-theme="forest"] .studio-period{color:#548b58!important}
+html[data-mu-theme="forest"] #random-starts{accent-color:#376d4e}
+html[data-mu-theme="forest"]{--bg:#edf3ec;--panel:#f4f8f1;--nav:#203e32;--navsoft:#365c47;--green:#376d4e}
+html[data-mu-theme="plum"] body{background:linear-gradient(180deg,#eee7f0 0,#f4f0f5 280px)!important;color:#362c40}
+html[data-mu-theme="plum"] .mu-nav{background:#34273e!important;border-bottom-color:#65556d!important}
+html[data-mu-theme="plum"] .mu-brand-mark{background:#eee0ef!important;color:#604066!important}
+html[data-mu-theme="plum"] .mu-link[aria-current="page"]{background:#f0e4f0!important;color:#53345b!important;border-color:#f0e4f0!important}
+html[data-mu-theme="plum"] .mu-link:hover{background:#58435f!important}
+html[data-mu-theme="plum"] .app-card:hover,html[data-mu-theme="plum"] .panel:hover{border-color:#bba1c2}
+html[data-mu-theme="plum"] .app-icon,html[data-mu-theme="plum"] .version{background:#f1e6f2!important;color:#764c81!important}
+html[data-mu-theme="plum"] .open,html[data-mu-theme="plum"] .eyebrow,html[data-mu-theme="plum"] .studio-kicker{color:#795080!important}
+html[data-mu-theme="plum"] button.primary,html[data-mu-theme="plum"] .action-link.primary{background:#78518a!important;border-color:#78518a!important}
+html[data-mu-theme="plum"] .period,html[data-mu-theme="plum"] .studio-period{color:#91639d!important}
+html[data-mu-theme="plum"] #random-starts{accent-color:#78518a}
+html[data-mu-theme="plum"]{--bg:#f1edf4;--panel:#f8f3f9;--nav:#34273e;--navsoft:#58435f;--green:#78518a}
