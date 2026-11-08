@@ -68,9 +68,9 @@
       const badge=document.createElement('span');badge.className='generator-library-badge';badge.textContent=builtinIds.has(d.id)?'Built-in':'Imported';
       info.append(title,detail,badge);
       const actions=document.createElement('div');actions.className='generator-library-actions';
-      const use=document.createElement('button');use.type='button';use.textContent=d.id===def.id?'Active':'Use generator';use.disabled=d.id===def.id;
-      use.onclick=()=>{def=d;definitionSource=builtinIds.has(d.id)?'built-in':'browser-imported';registrySave();registryUI();loadBatchOrFresh();};
-      actions.appendChild(use);
+      const download=document.createElement('button');download.type='button';download.textContent='Download JSON';
+      download.onclick=()=>downloadGenerator(d);
+      actions.appendChild(download);
       if(!builtinIds.has(d.id)){
         const remove=document.createElement('button');remove.type='button';remove.className='generator-remove';remove.textContent='Delete';
         remove.onclick=()=>{if(!confirm('Delete generator '+d.name+'? Saved chart batches will not be erased.'))return;delete registry[d.id];if(def.id===d.id){def=registry['random-dominant-sevenths'];definitionSource='built-in';loadBatchOrFresh();}registrySave();registryUI();status('Generator deleted.');};
@@ -234,6 +234,7 @@
   }
   function resultsJson(){if(!chart)return '';let raw=JSON.stringify(resultsObject(),null,2);$('#result-json').value=raw;return raw;}
   function download(name,text,mime){const blob=new Blob([text],{type:mime});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000);}
+  function downloadGenerator(d){download(d.id+'.json',JSON.stringify(d,null,2),'application/json');}
   function save(){try{const all=JSON.parse(localStorage.getItem(storageKey)||'{}');all[batchKey()]={mode,batch};localStorage.setItem(storageKey,JSON.stringify(all));}catch(e){status('Browser storage unavailable; use result download instead.');}}
   function refreshControls(){
     const playlist=mode==='playlist';$('#playlist-count-label').hidden=!playlist;
@@ -279,7 +280,16 @@
     $('#close-generator-manager').onclick=()=>{$('#generator-manager').hidden=true;$('#manage-generators').setAttribute('aria-expanded','false');$('#manage-generators').focus();};
     $('#generator-select').onchange=()=>{def=registry[$('#generator-select').value];definitionSource=builtinIds.has(def.id)?'built-in':'browser-imported';registrySave();registryUI();loadBatchOrFresh();};
     $('#generator-file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text());const checked=generatorCheck(parsed);if(!checked.pass)throw Error(checked.errors.join('; '));const d=checked.definition;if(builtinIds.has(d.id))throw Error('Cannot overwrite a built-in generator');if(registry[d.id]&&!confirm('Replace imported generator '+d.id+'?'))return;registry[d.id]=d;def=d;definitionSource='browser-imported: '+file.name;registrySave();registryUI();loadBatchOrFresh();$('#generator-message').textContent='Installed '+d.name+(checked.legacy?' (legacy JSON migrated to schema v1)':'')+'.';}catch(err){$('#generator-message').textContent='Import rejected: '+err.message;}finally{e.target.value='';}};
-    $('#export-generator').onclick=()=>download(def.id+'.json',JSON.stringify(def,null,2),'application/json');
+    let schemaText='';
+    $('#view-generator-schema').onclick=async()=>{
+      const panel=$('#generator-schema-view');panel.hidden=!panel.hidden;
+      $('#view-generator-schema').setAttribute('aria-expanded',String(!panel.hidden));
+      if(!panel.hidden&&!schemaText){
+        try{const response=await fetch('generators/generator-schema-v2.json',{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);schemaText=JSON.stringify(await response.json(),null,2);$('#generator-schema-text').textContent=schemaText;}
+        catch(error){$('#generator-schema-text').textContent='Unable to load schema: '+error.message;}
+      }
+    };
+    $('#copy-generator-schema').onclick=async()=>{if(!schemaText)return;try{await navigator.clipboard.writeText(schemaText);$('#generator-message').textContent='Schema copied.';}catch(e){$('#generator-message').textContent='Copy unavailable. Select the schema text to copy it.';}};
     $('#export-mode').onchange=()=>{mode=$('#export-mode').value;fresh();};
     $('#random-starts').onchange=refreshControls;
     $('#starting-key').onchange=()=>status('Press Generate to use the selected starting root.');
