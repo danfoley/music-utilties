@@ -1,0 +1,23 @@
+{
+  "name": "Music Utilities",
+  "version": "1.1.0",
+  "port": 8765,
+  "home": "index.html",
+  "launcher": "Open-Music-Utilities.command",
+  "spotify_redirect_uri": "Use the exact HTTPS address of Spotify-Setlist-Builder.html on GitHub Pages (or local loopback on Mac)",
+  "apps": [
+    {
+      "name": "Jazz Chart Studio",
+      "version": "0.6.2",
+      "path": "jazz-chart-studio-v0.6.2/index.html",
+      "source_archive": "jazz-chart-studio-v0.6.2-repeat-symbols.zip"
+    },
+    {
+      "name": "Spotify Setlist Builder",
+      "version": "Auto Connect",
+      "path": "Spotify-Setlist-Builder.html",
+      "source_archive": "Spotify-Setlist-Builder-Auto-Connect.zip"
+    }
+  ],
+  "hosting": "GitHub Pages"
+}
