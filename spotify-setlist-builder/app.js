@@ -246,9 +246,7 @@
           $("modeNotice").textContent = isLocalServer()
             ? "This page is running from an HTTPS website or a supported local server. Register the exact redirect URI below, then connect."
             : "You opened the HTML file directly. All offline features work, but Spotify sign-in requires HTTPS hosting or the included Mac launcher (http://127.0.0.1).";
-          $("susanStatus").textContent = app.susanLoaded
-            ? `${app.susanNames.length} Susan playlists indexed; ${app.susanTracks.length} tracks`
-            : "Susan playlists will be indexed when connected.";
+          $("susanStatus").textContent = "To prioritize existing playlists, enter a name keyword on Find Recordings.";
         }
         function isLocalServer() {
           return (
@@ -720,69 +718,10 @@
             history.replaceState(null, "", location.pathname);
             setBadge();
             await testConnection();
-            flash("Spotify authorized. Loading Susan playlists…", "success");
-            await loadSusan();
+            flash("Spotify connected. Recording searches are ready.", "success");
           } catch (e) {
             logEvent("oauth-error", e.message);
             flash("Could not finish Spotify sign-in: " + e.message, "error");
-          }
-        }
-        async function loadSusan() {
-          app.susanTracks = [];
-          app.susanNames = [];
-          app.susanLoaded = false;
-          try {
-            let next = "/me/playlists?limit=50",
-              playlists = [];
-            for (let i = 0; next && i < 25; i++) {
-              let d = await api(next);
-              playlists.push(...(d.items || []));
-              next = d.next
-                ? new URL(d.next).pathname.replace("/v1", "") +
-                  new URL(d.next).search
-                : null;
-            }
-            let matching = playlists.filter((x) => /susan/i.test(x.name || ""));
-            app.susanNames = matching.map((x) => x.name);
-            const byId = new Map();
-            for (const p of matching) {
-              let url = `/playlists/${encodeURIComponent(p.id)}/items?limit=50`;
-              for (let page = 0; url && page < 50; page++) {
-                try {
-                  let d = await api(url);
-                  for (let entry of d.items || []) {
-                    const t = entry.item || entry.track;
-                    if (t?.type === "track" && t.id) {
-                      if (!byId.has(t.id))
-                        byId.set(t.id, { ...t, susanNames: [] });
-                      byId.get(t.id).susanNames.push(p.name);
-                    }
-                  }
-                  url = d.next
-                    ? new URL(d.next).pathname.replace("/v1", "") +
-                      new URL(d.next).search
-                    : null;
-                } catch (e) {
-                  flash(
-                    `Couldn't read Susan playlist “${p.name}”: ${e.message}`,
-                  );
-                  break;
-                }
-              }
-            }
-            app.susanTracks = [...byId.values()];
-            app.susanLoaded = true;
-            $("susanStatus").textContent =
-              `Loaded ${matching.length} Susan playlists, ${app.susanTracks.length} unique tracks`;
-            flash(
-              `Spotify connected · ${matching.length} Susan playlists found, ${app.susanTracks.length} tracks indexed.`,
-              "success",
-            );
-          } catch (e) {
-            flash(
-              "Connected, but could not index Susan playlists: " + e.message,
-              "warning",
-            );
           }
         }
         async function validateLink() {
