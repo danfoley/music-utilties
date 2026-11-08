@@ -154,13 +154,17 @@
           susanNames: [],
           susanLoaded: false,
           playlistName: "",
+          priorityPlaylistEnabled: false,
+          priorityPlaylistKeyword: "",
         };
         let token = null,
           results = [],
           candidate = null,
           view = "main",
           busy = false,
-          searchSerial = 0;
+          searchSerial = 0,
+          priorityCache = new Map(),
+          prioritySearchTimer = null;
         function save() {
           localStorage.setItem(
             STORE,
@@ -349,20 +353,22 @@
             ? "Live Spotify"
             : "Spotify disconnected";
           $("resultsNote").textContent = token
-            ? "Press Search to query Spotify."
+            ? "Searching Spotify for recordings…"
             : "Connect Spotify to search for recordings.";
           $("results").replaceChildren();
           if (candidate === "skip") {
             $("resultsNote").textContent =
               "Previously skipped. Search to choose a recording, or skip again.";
           }
-          // Wait for the user to search; never populate recordings from a built-in catalog.
+          // Search the live Spotify catalog as soon as the song opens.
+          if (token) searchTracks(song.title, true).catch((error) => logEvent("auto-search-error", error.message));
         }
         function renderResults() {
           let root = $("results");
           root.replaceChildren();
           let sorted = [...results].sort(
             (a, b) =>
+              Number(Boolean(b.priorityPlaylists?.length)) - Number(Boolean(a.priorityPlaylists?.length)) ||
               rank(b, $("searchTerm").value) - rank(a, $("searchTerm").value),
           );
           $("resultsNote").textContent = sorted.length
@@ -373,7 +379,7 @@
             const div = document.createElement("div");
             div.className = "result" + (selected ? " selected" : "");
             let img = t.album?.images?.[0]?.url;
-            div.innerHTML = `<span class="radio" aria-hidden="true"></span>${img ? `<img alt="" src="${htmlEsc(img)}">` : '<div style="width:58px;height:58px;background:#2c3d49;display:grid;place-items:center;border-radius:7px">♫</div>'}<div class="info"><div class="title">${htmlEsc(t.name)}</div><div>${htmlEsc(trackArtist(t))}</div><div class="meta">${htmlEsc(t.album?.name || "")}</div>${t.susanNames?.length ? `<div class="tag">★ Susan: ${htmlEsc(t.susanNames.join(", "))}</div>` : ""}</div>`;
+            div.innerHTML = `<span class="radio" aria-hidden="true"></span>${img ? `<img alt="" src="${htmlEsc(img)}">` : '<div style="width:58px;height:58px;background:#2c3d49;display:grid;place-items:center;border-radius:7px">♫</div>'}<div class="info"><div class="title">${htmlEsc(t.name)}</div><div>${htmlEsc(trackArtist(t))}</div><div class="meta">${htmlEsc(t.album?.name || "")}</div>${t.priorityPlaylists?.length ? `<div class="tag">★ In setlist: ${htmlEsc(t.priorityPlaylists.join(", "))}</div>` : ""}</div>`;
             div.onclick = () => {
               candidate = t;
               $("nextSongBtn").disabled = false;
@@ -390,6 +396,54 @@
             root.append(div);
           }
         }
+        async function matchingPlaylistTracks(keyword, songTitle) {
+          const key = keyword.toLocaleLowerCase();
+          let playlistTracks = priorityCache.get(key);
+          if (!playlistTracks) {
+            $("priorityPlaylistStatus").textContent = `Finding Spotify playlists containing “${keyword}”…`;
+            let next = "/me/playlists?limit=50";
+            const playlists = [];
+            for (let page = 0; next && page < 25; page++) {
+              const data = await api(next);
+              playlists.push(...(data.items || []));
+              next = data.next ? new URL(data.next).pathname.replace(/^\\/v1/, "") + new URL(data.next).search : null;
+            }
+            const matching = playlists.filter((playlist) => playlist?.name?.toLocaleLowerCase().includes(key));
+            const tracksById = new Map();
+            for (const playlist of matching) {
+              let url = `/playlists/${encodeURIComponent(playlist.id)}/items?limit=50`;
+              for (let page = 0; url && page < 50; page++) {
+                const data = await api(url);
+                for (const entry of data.items || []) {
+                  const track = entry.item || entry.track;
+                  if (!track || track.type !== "track" || !track.id) continue;
+                  if (!tracksById.has(track.id)) tracksById.set(track.id, { ...track, priorityPlaylists: [] });
+                  const names = tracksById.get(track.id).priorityPlaylists;
+                  if (!names.includes(playlist.name)) names.push(playlist.name);
+                }
+                url = data.next ? new URL(data.next).pathname.replace(/^\\/v1/, "") + new URL(data.next).search : null;
+              }
+            }
+            playlistTracks = [...tracksById.values()];
+            priorityCache.set(key, playlistTracks);
+            $("priorityPlaylistStatus").textContent = `${matching.length} matching setlists · ${playlistTracks.length} recordings indexed`;
+          }
+          const title = songTitle.trim().toLocaleLowerCase();
+          return playlistTracks.filter((track) =>
+            title && (track.name?.toLocaleLowerCase().includes(title) || title.includes(track.name?.toLocaleLowerCase() || "___"))
+          );
+        }
+
+        function scheduleRecordingSearch() {
+          clearTimeout(prioritySearchTimer);
+          if (!current() || !token) return;
+          prioritySearchTimer = setTimeout(() => {
+            searchTracks($("searchTerm").value.trim() || current().title).catch((error) =>
+              logEvent("auto-search-error", error.message)
+            );
+          }, 350);
+        }
+
         async function searchTracks(term, initial = false) {
           logEvent(
             "search",
@@ -411,23 +465,23 @@
                   new URLSearchParams({ q: term, type: "track", limit: "10" }),
               );
               found = data.tracks?.items || [];
-              // Only add Susan tracks that match the SONG, not unrelated artist search terms.
-              const songTitle = (current()?.title || "").toLowerCase();
-              const local = app.susanTracks.filter(
-                (t) =>
-                  t.name.toLowerCase().includes(songTitle) ||
-                  songTitle.includes(t.name.toLowerCase()),
-              );
-              const dict = new Map(
-                [...found, ...local].filter((t) => t?.id).map((t) => [t.id, t]),
-              );
-              const susanMap = new Map(
-                app.susanTracks.map((t) => [t.id, t.susanNames || []]),
-              );
-              found = [...dict.values()].map((t) => ({
-                ...t,
-                susanNames: susanMap.get(t.id) || [],
-              }));
+              if (app.priorityPlaylistEnabled && app.priorityPlaylistKeyword.trim()) {
+                try {
+                  const preferred = await matchingPlaylistTracks(
+                    app.priorityPlaylistKeyword.trim(),
+                    current()?.title || term,
+                  );
+                  const preferredById = new Map(preferred.map((track) => [track.id, track]));
+                  const merged = new Map([...found, ...preferred].filter((track) => track?.id).map((track) => [track.id, track]));
+                  found = [...merged.values()].map((track) => ({
+                    ...track,
+                    priorityPlaylists: preferredById.get(track.id)?.priorityPlaylists || [],
+                  }));
+                } catch (error) {
+                  $("priorityPlaylistStatus").textContent = "Setlist lookup failed: " + error.message;
+                  logEvent("playlist-priority-error", error.message);
+                }
+              }
             } else {
               // No offline catalog: results must come from an authenticated Spotify search.
               found = [];
@@ -919,6 +973,19 @@
           $("parsedPreview").classList.add("hidden");
           showStage(0);
         };
+        $("priorityPlaylistEnabled").checked = Boolean(app.priorityPlaylistEnabled);
+        $("priorityPlaylistKeyword").value = app.priorityPlaylistKeyword || "";
+        $("priorityPlaylistEnabled").onchange = () => {
+          app.priorityPlaylistEnabled = $("priorityPlaylistEnabled").checked;
+          save();
+          scheduleRecordingSearch();
+        };
+        $("priorityPlaylistKeyword").oninput = () => {
+          app.priorityPlaylistKeyword = $("priorityPlaylistKeyword").value;
+          save();
+          scheduleRecordingSearch();
+        };
+        $("searchTerm").addEventListener("input", scheduleRecordingSearch);
         $("searchBtn").onclick = () =>
           searchTracks($("searchTerm").value.trim() || current().title);
         $("searchTerm").addEventListener("keydown", (e) => {
