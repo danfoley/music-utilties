@@ -419,6 +419,7 @@
     if (isCycle(def)) {
       $("#random-starts").checked = randomControl(def)?.default !== false;
     }
+    renderMixedControls();
     refreshControls();
     render();
   }
@@ -932,10 +933,69 @@
     sel.value = String(Math.max(0, batch.indexOf(chart)));
     if (!batch.includes(chart)) chart = batch[0];
   }
+  function renderMixedControls() {
+    if (def.strategy?.type !== "mixed-qualities") return;
+    const strategy = def.strategy;
+    const qualities = mixedOptions.qualities?.length ? mixedOptions.qualities : strategy.defaultQualities;
+    const group = $("#mixed-quality-options");
+    group.replaceChildren();
+    for (const quality of strategy.qualities) {
+      const value = optionValue(quality);
+      const label = document.createElement("label");
+      label.className = "mixed-quality";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = value;
+      checkbox.checked = qualities.includes(value);
+      checkbox.onchange = saveMixedOptions;
+      label.append(checkbox, document.createTextNode(quality.label || value));
+      group.appendChild(label);
+    }
+    for (const [id, options, selected] of [
+      ["mixed-root-mode", strategy.rootModes, mixedOptions.rootMode || strategy.defaultRootMode],
+      ["mixed-start-root", strategy.roots, mixedOptions.startRoot || strategy.defaultStart],
+    ]) {
+      const select = $("#" + id);
+      select.replaceChildren();
+      for (const item of options) {
+        const option = document.createElement("option");
+        option.value = optionValue(item);
+        option.textContent = typeof item === "string" ? item : item.label || item.value;
+        select.appendChild(option);
+      }
+      select.value = selected;
+      select.onchange = saveMixedOptions;
+    }
+    $("#mixed-status").textContent = qualities.length + " chord qualities selected";
+  }
+
+  function saveMixedOptions() {
+    const qualities = [...document.querySelectorAll("#mixed-quality-options input:checked")].map((input) => input.value);
+    if (!qualities.length) {
+      $("#mixed-status").textContent = "Select at least one chord quality.";
+      return;
+    }
+    mixedOptions = {
+      qualities,
+      rootMode: $("#mixed-root-mode").value,
+      startRoot: $("#mixed-start-root").value,
+    };
+    localStorage.setItem(mixedStorageKey, JSON.stringify(mixedOptions));
+    $("#mixed-status").textContent = qualities.length + " qualities selected · Press Generate to apply.";
+  }
+
   function fresh() {
     if (def.strategy?.type === "mistakes" && !mistakeChords.length) {
       status("Select a mistakes JSON file before generating a drill.");
       return;
+    }
+    if (def.strategy?.type === "mixed-qualities") {
+      const qualities = [...document.querySelectorAll("#mixed-quality-options input:checked")].map((input) => input.value);
+      if (!qualities.length) {
+        status("Select at least one chord quality before generating.");
+        return;
+      }
+      saveMixedOptions();
     }
     const count = mode === "playlist" ? Number($("#playlist-count").value) : 1;
     if (
@@ -1054,6 +1114,8 @@
     } catch { mistakeChords = []; }
     $("#mistake-file-status").textContent = mistakeChords.length
       ? `${mistakeChords.length} mistakes saved in this browser` : "No mistake file selected.";
+    try { mixedOptions = JSON.parse(localStorage.getItem(mixedStorageKey) || "{}"); }
+    catch { mixedOptions = {}; }
     const last = localStorage.getItem(selectedStorageKey);
     if (last && registry[last]) def = registry[last];
     $("#app-version").textContent = APP_VERSION;
@@ -1084,6 +1146,15 @@
       registry[checked.definition.id] = checked.definition;
     } catch (error) {
       status("Mistake generator failed to load: " + error.message);
+    }
+    try {
+      const response = await fetch("generators/mixed-seventh-chords.json", { cache: "no-store" });
+      if (!response.ok) throw Error("HTTP " + response.status);
+      const checked = generatorCheck(await response.json());
+      if (!checked.pass) throw Error(checked.errors.join("; "));
+      registry[checked.definition.id] = checked.definition;
+    } catch (error) {
+      status("Mixed seventh generator failed to load: " + error.message);
     }
     registryUI();
     if (def.strategy?.type === "mistakes" && !mistakeChords.length) {
