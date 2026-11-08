@@ -406,7 +406,7 @@
             for (let page = 0; next && page < 25; page++) {
               const data = await api(next);
               playlists.push(...(data.items || []));
-              next = data.next ? new URL(data.next).pathname.replace(/^\\/v1/, "") + new URL(data.next).search : null;
+              next = data.next ? new URL(data.next).pathname.replace("/v1", "") + new URL(data.next).search : null;
             }
             const matching = playlists.filter((playlist) => playlist?.name?.toLocaleLowerCase().includes(key));
             const tracksById = new Map();
@@ -421,7 +421,7 @@
                   const names = tracksById.get(track.id).priorityPlaylists;
                   if (!names.includes(playlist.name)) names.push(playlist.name);
                 }
-                url = data.next ? new URL(data.next).pathname.replace(/^\\/v1/, "") + new URL(data.next).search : null;
+                url = data.next ? new URL(data.next).pathname.replace("/v1", "") + new URL(data.next).search : null;
               }
             }
             playlistTracks = [...tracksById.values()];
