@@ -54,3 +54,26 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
 #circle-options #random-start-label{display:inline-flex;flex-direction:row;align-items:center;gap:9px;align-self:flex-end;min-height:44px;max-width:100%;font-weight:600;cursor:pointer}
 #circle-options #random-starts{appearance:auto;box-sizing:border-box;flex:0 0 17px;width:17px;height:17px;min-width:17px;min-height:17px;max-width:17px;margin:0;padding:0;accent-color:#217d80;cursor:pointer}
 @media(max-width:700px){#circle-options #random-start-label{align-self:flex-start;min-height:34px}}
+
+/* Fix: HTML hidden must win over the flex layout (single-chart mode). */
+#circle-options #random-start-label[hidden],
+#circle-options[hidden]{display:none!important}
+/* Compact, predictable checkbox in playlist mode on Mac and iPad. */
+#circle-options #random-start-label:not([hidden]){
+  display:inline-flex;flex-direction:row;align-items:center;justify-content:flex-start;
+  align-self:center;gap:10px;min-height:44px;margin:0;padding:0;
+  max-width:340px;cursor:pointer;line-height:1.4
+}
+#circle-options #random-starts{
+  -webkit-appearance:none;appearance:none;display:inline-grid;place-items:center;
+  flex:0 0 18px;width:18px;height:18px;min-width:18px;min-height:18px;
+  max-width:18px;max-height:18px;margin:0;padding:0;vertical-align:middle;
+  border:1.5px solid #7c98a8;border-radius:5px;background:#fff;
+  box-shadow:none;cursor:pointer
+}
+#circle-options #random-starts:checked{
+  background-color:#1c6975;border-color:#1c6975;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='m4 9 3.3 3.3L14 5.7' fill='none' stroke='white' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size:100% 100%;background-repeat:no-repeat
+}
+#circle-options #random-starts:focus-visible{outline:3px solid #74bbb7;outline-offset:3px}
