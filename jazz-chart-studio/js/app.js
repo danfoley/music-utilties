@@ -56,10 +56,13 @@
       "random-dominant-sevenths",
       "circle-dominant-sevenths",
       "mistake-drills",
+      "mixed-seventh-chords",
     ]);
-  const { PITCH, shuffle, cycleSequence, parseMistakeChords } = window.JazzChartCore;
+  const { PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence } = window.JazzChartCore;
   const mistakeStorageKey = "jcs-mistake-drill-chords";
   let mistakeChords = [];
+  const mixedStorageKey = "jcs-mixed-seventh-options";
+  let mixedOptions = {};
   const isCycle = (d) => d.strategy?.type === "cycle";
   const optionValue = (x) => (typeof x === "string" ? x : x.value);
   const controls = (d) => d.controls || {};
@@ -243,6 +246,16 @@
         st.forbidAdjacentSelectionsOfSameChord !== true
       )
         errors.push("Unsupported shuffle constraints");
+    } else if (st.type === "mixed-qualities") {
+      if (!Array.isArray(st.roots) || st.roots.length !== 12 ||
+          st.roots.some((root) => !Number.isInteger(PITCH[root])) ||
+          new Set(st.roots.map((root) => PITCH[root])).size !== 12 ||
+          !Array.isArray(st.qualities) || !st.qualities.length ||
+          new Set(st.qualities.map((quality) => optionValue(quality))).size !== st.qualities.length ||
+          !Array.isArray(st.rootModes) || !st.rootModes.some((mode) => mode.value === "fourths") ||
+          !st.rootModes.some((mode) => mode.value === "random") ||
+          d.bars !== 32 || d.barsPerSelection !== 2)
+        errors.push("Invalid mixed seventh chord configuration");
     } else if (st.type === "mistakes") {
       if (st.barsPerMistake !== 2 || d.barsPerSelection !== 2)
         errors.push("Mistake drills require two bars per mistake");
@@ -434,6 +447,12 @@
         throw Error(
           "Could not find an ordering satisfying the JSON constraints",
         );
+    } else if (st.type === "mixed-qualities") {
+      const options = d._mixed || mixedOptions;
+      const selected = options.qualities?.length ? options.qualities : st.defaultQualities;
+      startKey = options.startRoot || st.defaultStart;
+      direction = options.rootMode || st.defaultRootMode;
+      picks = mixedSequence(d, selected, direction, startKey);
     } else if (st.type === "mistakes") {
       if (!mistakeChords.length) throw Error("Select a mistakes JSON file first");
       picks = [...mistakeChords];
@@ -448,6 +467,7 @@
       barsPerLine: d.barsPerLine,
       createdAt: new Date().toISOString(),
       ...(startKey ? { startKey, direction } : {}),
+      ...(st.type === "mixed-qualities" ? { selectedQualities: [...(d._mixed?.qualities || mixedOptions.qualities || st.defaultQualities)] } : {}),
       picks,
       measures: picks.flatMap((x) => Array(d.barsPerSelection).fill(x)),
     };
@@ -478,6 +498,29 @@
           .size !== st.roots.length
       )
         errors.push("Duplicate cycle roots");
+    } else if (st.type === "mixed-qualities") {
+      const qualities = c.selectedQualities;
+      if (!Array.isArray(qualities) || !qualities.length ||
+          qualities.some((q) => !st.qualities.map(optionValue).includes(q)))
+        errors.push("Invalid selected qualities");
+      else {
+        const expected = Object.fromEntries(qualities.map((q) => [q, 0]));
+        c.picks.forEach((chord) => {
+          const suffix = qualities.find((q) => chord.endsWith(q) && chord.slice(0, -q.length) in PITCH);
+          if (!suffix) errors.push("Unexpected chord quality: " + chord);
+          else expected[suffix]++;
+        });
+        const counts = Object.values(expected);
+        if (Math.max(...counts) - Math.min(...counts) > 1)
+          errors.push("Chord qualities are not balanced");
+        if (c.direction === "fourths") {
+          c.picks.forEach((chord, i) => {
+            const suffix = qualities.find((q) => chord.endsWith(q) && chord.slice(0, -q.length) in PITCH);
+            if (suffix && PITCH[chord.slice(0, -suffix.length)] !== (PITCH[c.startKey] + 5 * i) % 12)
+              errors.push("Root cycle differs at position " + (i + 1));
+          });
+        }
+      }
     } else if (st.type === "mistakes") {
       if (!c.picks.length || c.picks.some((chord) => typeof chord !== "string" || !chord))
         errors.push("Mistake drill must contain valid chord symbols");
@@ -678,6 +721,7 @@
         ? "Starting root: " + c.startKey
         : def.strategy?.type === "mistakes" ? "Mistake practice" : c.key + " major key signature",
       ...(isCycle(def) ? ["Circle of " + c.direction] : []),
+      ...(def.strategy?.type === "mixed-qualities" ? ["Root movement: " + c.direction, "Qualities: " + c.selectedQualities.join(", ")] : []),
       c.style,
       c.timeSignature,
       c.measures.length + " measures",
@@ -843,6 +887,7 @@
     $("#playlist-count-label").hidden = !playlist;
     $("#circle-options").hidden = !isCycle(def);
     $("#mistake-options").hidden = def.strategy?.type !== "mistakes";
+    $("#mixed-options").hidden = def.strategy?.type !== "mixed-qualities";
     if (def.strategy?.type === "mistakes") { mode = "chart"; $("#export-mode").value = "chart"; }
     $("#export-mode").disabled = def.strategy?.type === "mistakes";
     $("#random-start-label").hidden = !(
