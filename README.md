@@ -4,7 +4,7 @@ Home for Jazz Chart Studio v0.6.3 and Spotify Setlist Builder.
 
 ## Deployment
 
-Publish the repository root with GitHub Pages once the static application files are committed. Spotify uses Authorization Code with PKCE and a redirect URI based on the HTTPS URL of `Spotify-Setlist-Builder.html`.
+Publish the repository root with GitHub Pages once the static application files are committed. Spotify uses Authorization Code with PKCE and a redirect URI based on the HTTPS URL of `spotify-setlist-builder/index.html`.
 
 ## Source of truth
 
