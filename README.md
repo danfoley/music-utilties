@@ -9,7 +9,7 @@ A collection of browser-based music tools for Mac and iPad.
 | Jazz Chart Studio | **0.7.0** | `jazz-chart-studio/` | [Open Jazz Chart Studio](./jazz-chart-studio/index.html) |
 | Spotify Setlist Builder | **0.1** | `spotify-setlist-builder/` | [Open Spotify Setlist Builder](./spotify-setlist-builder/index.html) |
 
-Open [Music Utilities](./index.html) to choose an application. Each app has a navigation menu to return home or switch apps.
+Open [Music Utilities](https://danfoley.github.io/music-utilties/) to choose an application. Each app has a navigation menu to return home or switch apps.
 
 ## Versioning
 
