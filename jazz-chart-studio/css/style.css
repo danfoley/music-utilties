@@ -206,3 +206,10 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
 .mistake-options h3{margin:0 0 8px;font-size:1.1rem}
 .mistake-options p{margin:8px 0 12px}
 #mistake-file-status{font-size:.9rem;overflow-wrap:anywhere}
+
+/* Mixed seventh chord selector */
+#mixed-options[hidden]{display:none!important}
+.mixed-quality-options{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:9px;margin:14px 0 18px}
+.mixed-quality{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--line,#d7e1e6);border-radius:9px;background:var(--surface,#fff);font-weight:600;cursor:pointer}
+.mixed-quality input{appearance:auto!important;-webkit-appearance:checkbox!important;width:17px!important;height:17px!important;min-width:17px!important;flex:0 0 17px!important;margin:0!important}
+#mixed-options .options{margin-top:12px}
