@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Jazz Chart Studio Generator Definition v2",
+  "description": "Declarative generator definitions. Strategy cycle and shuffle are interpreted by the shared chart engine.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "title",
+    "key",
+    "style",
+    "timeSignature",
+    "bars",
+    "barsPerLine",
+    "barsPerSelection",
+    "strategy",
+    "playlist"
+  ],
+  "additionalProperties": true,
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,63}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "key": {
+      "type": "string",
+      "minLength": 1
+    },
+    "style": {
+      "type": "string",
+      "minLength": 1
+    },
+    "timeSignature": {
+      "const": "4/4"
+    },
+    "bars": {
+      "type": "integer",
+      "minimum": 4
+    },
+    "barsPerLine": {
+      "const": 4
+    },
+    "barsPerSelection": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "strategy": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/cycle"
+        },
+        {
+          "$ref": "#/$defs/shuffle"
+        }
+      ]
+    },
+    "controls": {
+      "type": "object",
+      "properties": {
+        "startingRoot": {
+          "$ref": "#/$defs/selectControl"
+        },
+        "direction": {
+          "$ref": "#/$defs/selectControl"
+        },
+        "randomPlaylistStarts": {
+          "$ref": "#/$defs/checkboxControl"
+        }
+      }
+    },
+    "playlist": {
+      "type": "object",
+      "required": [
+        "titleTemplate",
+        "minCharts",
+        "maxCharts"
+      ],
+      "properties": {
+        "titleTemplate": {
+          "type": "string"
+        },
+        "minCharts": {
+          "type": "integer",
+          "minimum": 2
+        },
+        "maxCharts": {
+          "type": "integer",
+          "maximum": 50
+        }
+      }
+    },
+    "validation": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "cycle": {
+      "type": "object",
+      "required": [
+        "type",
+        "roots",
+        "intervals",
+        "chordSuffix"
+      ],
+      "properties": {
+        "type": {
+          "const": "cycle"
+        },
+        "roots": {
+          "type": "array",
+          "minItems": 2,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "intervals": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 11
+          }
+        },
+        "chordSuffix": {
+          "type": "string"
+        },
+        "uniqueRoots": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shuffle": {
+      "type": "object",
+      "required": [
+        "type",
+        "chords",
+        "repeatDistinctChordCount",
+        "maxSelectionsPerChord",
+        "requireAllChords",
+        "forbidAdjacentSelectionsOfSameChord"
+      ],
+      "properties": {
+        "type": {
+          "const": "shuffle"
+        },
+        "chords": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-G](?:b|#)?7$"
+          }
+        },
+        "repeatDistinctChordCount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxSelectionsPerChord": {
+          "const": 2
+        },
+        "requireAllChords": {
+          "const": true
+        },
+        "forbidAdjacentSelectionsOfSameChord": {
+          "const": true
+        }
+      }
+    },
+    "selectControl": {
+      "type": "object",
+      "required": [
+        "label",
+        "type",
+        "options",
+        "default"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "const": "select"
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "object",
+                "required": [
+                  "value",
+                  "label"
+                ],
+                "properties": {
+                  "value": {
+                    "type": "string"
+                  },
+                  "label": {
+                    "type": "string"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "default": {
+          "type": "string"
+        }
+      }
+    },
+    "checkboxControl": {
+      "type": "object",
+      "required": [
+        "label",
+        "type",
+        "default"
+      ],
+      "properties": {
+        "label": {
+          "type": "string"
+        },
+        "type": {
+          "const": "checkbox"
+        },
+        "default": {
+          "type": "boolean"
+        },
+        "playlistOnly": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
