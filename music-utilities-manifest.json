@@ -4,19 +4,19 @@
   "port": 8765,
   "home": "index.html",
   "launcher": "Open-Music-Utilities.command",
-  "spotify_redirect_uri": "Use the exact HTTPS address of Spotify-Setlist-Builder.html on GitHub Pages (or local loopback on Mac)",
+  "spotify_redirect_uri": "Use the exact HTTPS URL of spotify-setlist-builder/index.html (or the localhost URL shown by the app)",
   "apps": [
     {
       "name": "Jazz Chart Studio",
       "version": "0.6.3",
-      "path": "jazz-chart-studio-v0.6.3/index.html",
-      "source": "GitHub: jazz-chart-studio-v0.6.3/"
+      "path": "jazz-chart-studio/index.html",
+      "source": "GitHub: jazz-chart-studio/"
     },
     {
       "name": "Spotify Setlist Builder",
       "version": "Auto Connect",
-      "path": "Spotify-Setlist-Builder.html",
-      "source_archive": "Spotify-Setlist-Builder-Auto-Connect.zip"
+      "path": "spotify-setlist-builder/index.html",
+      "source": "GitHub: spotify-setlist-builder/"
     }
   ],
   "hosting": "GitHub Pages"
