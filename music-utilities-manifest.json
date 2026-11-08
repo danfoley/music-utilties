@@ -14,7 +14,7 @@
     },
     {
       "name": "Spotify Setlist Builder",
-      "version": "Auto Connect",
+      "version": "0.1",
       "path": "spotify-setlist-builder/index.html",
       "source": "GitHub: spotify-setlist-builder/"
     }
