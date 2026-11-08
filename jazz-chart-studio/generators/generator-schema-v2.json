@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Jazz Chart Studio Generator Definition v2",
-  "description": "Declarative cycle, shuffle, and built-in mistake-drill generator definitions.",
+  "description": "Declarative cycle, shuffle, mixed seventh-quality, and mistake-drill generator definitions.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -66,6 +66,9 @@
         },
         {
           "$ref": "#/$defs/mistakes"
+        },
+        {
+          "$ref": "#/$defs/mixedQualities"
         }
       ]
     },
@@ -268,6 +271,82 @@
         },
         "barsPerMistake": {
           "const": 2
+        }
+      }
+    },
+    "mixedQualities": {
+      "type": "object",
+      "required": [
+        "type",
+        "roots",
+        "qualities",
+        "defaultQualities",
+        "rootModes",
+        "defaultRootMode",
+        "defaultStart",
+        "balanced"
+      ],
+      "properties": {
+        "type": {
+          "const": "mixed-qualities"
+        },
+        "roots": {
+          "type": "array",
+          "minItems": 12,
+          "maxItems": 12,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "qualities": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/qualityOption"
+          }
+        },
+        "defaultQualities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "rootModes": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "$ref": "#/$defs/qualityOption"
+          }
+        },
+        "defaultRootMode": {
+          "enum": [
+            "fourths",
+            "random"
+          ]
+        },
+        "defaultStart": {
+          "type": "string"
+        },
+        "balanced": {
+          "const": true
+        }
+      }
+    },
+    "qualityOption": {
+      "type": "object",
+      "required": [
+        "value",
+        "label"
+      ],
+      "properties": {
+        "value": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
         }
       }
     }
