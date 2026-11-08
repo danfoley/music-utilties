@@ -47,5 +47,28 @@ window.JazzChartCore = (() => {
     return result;
   }
 
-  return Object.freeze({ PITCH, shuffle, cycleSequence });
+  // Accept an array of chord symbols or a JSON object containing mistakes.
+  // Keep duplicates: repeated errors are meaningful practice evidence.
+  function parseMistakeChords(input) {
+    const list = Array.isArray(input) ? input :
+      [input?.mistakes, input?.chords, input?.items, input?.entries, input?.data]
+        .find(Array.isArray);
+    if (!list) throw Error("Expected a JSON array or an object with a mistakes/chords/items array");
+    const chords = [];
+    for (const item of list) {
+      const raw = typeof item === "string" ? item :
+        item?.chord ?? item?.chordSymbol ?? item?.symbol ?? item?.name ?? item?.root;
+      if (typeof raw !== "string" || !raw.trim()) continue;
+      const normalized = raw.trim().replace(/♭/g, "b").replace(/♯/g, "#")
+        .replace(/\\s+(?:dominant\\s*)?(?:seventh|7th)$/i, "7")
+        .replace(/\\s+/g, "");
+      const chord = /^[A-G](?:#|b)?$/.test(normalized) ? normalized + "7" : normalized;
+      if (!/^[A-G](?:#|b)?(?:m|maj|dim|aug|sus|add|M|ø|°|\\+|\\-|\\d|#|b|\\(|\\)){0,20}$/i.test(chord))
+        throw Error("Invalid chord symbol: " + raw);
+      chords.push(chord);
+    }
+    if (!chords.length) throw Error("No usable chord symbols in mistakes JSON");
+    return chords;
+  }
+  return Object.freeze({ PITCH, shuffle, cycleSequence, parseMistakeChords });
 })();
