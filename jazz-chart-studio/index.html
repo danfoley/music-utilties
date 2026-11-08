@@ -300,6 +300,20 @@
             starting root for each playlist chart</label
           >
         </div>
+        <section id="mixed-options" class="mistake-options" hidden aria-label="Mixed seventh chord options">
+          <h3>Choose chord qualities</h3>
+          <p class="muted">Select the seventh-chord types and alterations to practice. The generator distributes selected qualities evenly across 16 two-measure positions.</p>
+          <div id="mixed-quality-options" class="mixed-quality-options" role="group" aria-label="Chord qualities"></div>
+          <div class="options">
+            <label>Root movement
+              <select id="mixed-root-mode"></select>
+            </label>
+            <label>Starting root
+              <select id="mixed-start-root"></select>
+            </label>
+          </div>
+          <p id="mixed-status" role="status" aria-live="polite"></p>
+        </section>
         <section id="mistake-options" class="mistake-options" hidden aria-label="Mistake drill data">
           <h3>Practice your mistakes</h3>
           <p class="muted">Select a mistakes JSON file. Each mistake becomes two measures in one iReal Pro chart. Your mistakes stay in this browser.</p>
