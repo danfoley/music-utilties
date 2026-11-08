@@ -55,8 +55,11 @@
     builtinIds = new Set([
       "random-dominant-sevenths",
       "circle-dominant-sevenths",
+      "mistake-drills",
     ]);
-  const { PITCH, shuffle, cycleSequence } = window.JazzChartCore;
+  const { PITCH, shuffle, cycleSequence, parseMistakeChords } = window.JazzChartCore;
+  const mistakeStorageKey = "jcs-mistake-drill-chords";
+  let mistakeChords = [];
   const isCycle = (d) => d.strategy?.type === "cycle";
   const optionValue = (x) => (typeof x === "string" ? x : x.value);
   const controls = (d) => d.controls || {};
@@ -240,6 +243,9 @@
         st.forbidAdjacentSelectionsOfSameChord !== true
       )
         errors.push("Unsupported shuffle constraints");
+    } else if (st.type === "mistakes") {
+      if (st.barsPerMistake !== 2 || d.barsPerSelection !== 2)
+        errors.push("Mistake drills require two bars per mistake");
     } else errors.push("Unknown strategy type");
     if (
       !d.playlist ||
@@ -424,6 +430,9 @@
         throw Error(
           "Could not find an ordering satisfying the JSON constraints",
         );
+    } else if (st.type === "mistakes") {
+      if (!mistakeChords.length) throw Error("Select a mistakes JSON file first");
+      picks = [...mistakeChords];
     } else throw Error("Unsupported strategy");
     return {
       id: Date.now() + "-" + Math.random().toString(36).slice(2, 7),
@@ -442,8 +451,9 @@
   function validate(c, d) {
     const errors = [],
       st = d.strategy;
+    const expectedBars = st.type === "mistakes" ? c.picks.length * d.barsPerSelection : d.bars;
     if (
-      c.measures.length !== d.bars ||
+      c.measures.length !== expectedBars ||
       c.picks.length !== d.bars / d.barsPerSelection
     )
       errors.push("Incorrect chart length");
@@ -464,6 +474,9 @@
           .size !== st.roots.length
       )
         errors.push("Duplicate cycle roots");
+    } else if (st.type === "mistakes") {
+      if (!c.picks.length || c.picks.some((chord) => typeof chord !== "string" || !chord))
+        errors.push("Mistake drill must contain valid chord symbols");
     } else {
       const counts = Object.fromEntries(st.chords.map((x) => [x, 0]));
       for (let i = 0; i < c.picks.length; i++) {
@@ -659,7 +672,7 @@
     for (const s of [
       isCycle(def)
         ? "Starting root: " + c.startKey
-        : c.key + " major key signature",
+        : def.strategy?.type === "mistakes" ? "Mistake practice" : c.key + " major key signature",
       ...(isCycle(def) ? ["Circle of " + c.direction] : []),
       c.style,
       c.timeSignature,
@@ -824,6 +837,9 @@
     const playlist = mode === "playlist";
     $("#playlist-count-label").hidden = !playlist;
     $("#circle-options").hidden = !isCycle(def);
+    $("#mistake-options").hidden = def.strategy?.type !== "mistakes";
+    if (def.strategy?.type === "mistakes") $("#export-mode").value = "chart";
+    $("#export-mode").disabled = def.strategy?.type === "mistakes";
     $("#random-start-label").hidden = !(
       isCycle(def) &&
       playlist &&
@@ -853,7 +869,7 @@
     const summary = $("#batch-summary");
     summary.textContent = playlist
       ? `${batch.length} independently generated charts · ${def.bars} bars each · one iReal Pro playlist`
-      : `One generated ${def.bars}-bar chart`;
+      : `One generated ${chart?.measures.length || def.bars}-bar chart`;
     const sel = $("#chart-select"),
       prior = sel.value;
     sel.replaceChildren();
@@ -867,6 +883,10 @@
     if (!batch.includes(chart)) chart = batch[0];
   }
   function fresh() {
+    if (def.strategy?.type === "mistakes" && !mistakeChords.length) {
+      status("Select a mistakes JSON file before generating a drill.");
+      return;
+    }
     const count = mode === "playlist" ? Number($("#playlist-count").value) : 1;
     if (
       !Number.isSafeInteger(count) ||
@@ -979,6 +999,11 @@
           registry[id] = check.definition;
       }
     } catch (e) {}
+    try { mistakeChords = JSON.parse(localStorage.getItem(mistakeStorageKey) || "[]");
+      if (!Array.isArray(mistakeChords)) mistakeChords = [];
+    } catch { mistakeChords = []; }
+    $("#mistake-file-status").textContent = mistakeChords.length
+      ? `${mistakeChords.length} mistakes saved in this browser` : "No mistake file selected.";
     const last = localStorage.getItem(selectedStorageKey);
     if (last && registry[last]) def = registry[last];
     $("#app-version").textContent = APP_VERSION;
@@ -1001,7 +1026,19 @@
     } catch (e) {
       status("Circle generator failed to load: " + e.message);
     }
+    try {
+      const response = await fetch("generators/mistake-drills.json", { cache: "no-store" });
+      if (!response.ok) throw Error("HTTP " + response.status);
+      const checked = generatorCheck(await response.json());
+      if (!checked.pass) throw Error(checked.errors.join("; "));
+      registry[checked.definition.id] = checked.definition;
+    } catch (error) {
+      status("Mistake generator failed to load: " + error.message);
+    }
     registryUI();
+    if (def.strategy?.type === "mistakes" && !mistakeChords.length) {
+      def = registry["random-dominant-sevenths"];
+    }
     loadBatchOrFresh();
     $("#manage-generators").onclick = () => {
       const panel = $("#generator-manager");
@@ -1024,6 +1061,21 @@
       registrySave();
       registryUI();
       loadBatchOrFresh();
+    };
+    $("#mistake-file").onchange = async (event) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const parsed = JSON.parse(await file.text());
+        mistakeChords = parseMistakeChords(parsed);
+        localStorage.setItem(mistakeStorageKey, JSON.stringify(mistakeChords));
+        $("#mistake-file-status").textContent = `${mistakeChords.length} mistakes loaded from ${file.name} · ${mistakeChords.length * 2} measures`;
+        if (def.strategy?.type === "mistakes") fresh();
+      } catch (error) {
+        $("#mistake-file-status").textContent = "Could not import mistakes: " + error.message;
+      } finally {
+        event.target.value = "";
+      }
     };
     $("#generator-file").onchange = async (e) => {
       const file = e.target.files?.[0];
