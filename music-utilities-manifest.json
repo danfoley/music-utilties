@@ -8,7 +8,7 @@
   "apps": [
     {
       "name": "Jazz Chart Studio",
-      "version": "0.6.3",
+      "version": "0.7.0",
       "path": "jazz-chart-studio/index.html",
       "source": "GitHub: jazz-chart-studio/"
     },
