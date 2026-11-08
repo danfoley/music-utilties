@@ -204,7 +204,7 @@
         function clearFlash() {
           $("messages").replaceChildren();
         }
-        const { parse, rank } = window.SpotifySetlistCore;
+        const { parse, rank, matchPlaylistTracks, orderRecordings } = window.SpotifySetlistCore;
         const trackArtist = (t) =>
             (t.artists || []).map((x) => x.name).join(", "),
           trackUrl = (t) =>
@@ -364,11 +364,7 @@
         function renderResults() {
           let root = $("results");
           root.replaceChildren();
-          let sorted = [...results].sort(
-            (a, b) =>
-              Number(Boolean(b.priorityPlaylists?.length)) - Number(Boolean(a.priorityPlaylists?.length)) ||
-              rank(b, $("searchTerm").value) - rank(a, $("searchTerm").value),
-          );
+          const sorted = orderRecordings(results, $("searchTerm").value);
           $("resultsNote").textContent = sorted.length
             ? `${sorted.length} matching recordings · Spotify search`
             : "No matching recordings. Try another artist, title or Spotify track URL.";
@@ -426,10 +422,7 @@
             priorityCache.set(key, playlistTracks);
             $("priorityPlaylistStatus").textContent = `${matching.length} matching setlists · ${playlistTracks.length} recordings indexed`;
           }
-          const title = songTitle.trim().toLocaleLowerCase();
-          return playlistTracks.filter((track) =>
-            title && (track.name?.toLocaleLowerCase().includes(title) || title.includes(track.name?.toLocaleLowerCase() || "___"))
-          );
+          return matchPlaylistTracks(playlistTracks, songTitle);
         }
 
         function scheduleRecordingSearch() {
