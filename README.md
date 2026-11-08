@@ -1,6 +1,6 @@
 # Music Utilities
 
-Home for Jazz Chart Studio v0.6.2 and Spotify Setlist Builder.
+Home for Jazz Chart Studio v0.6.3 and Spotify Setlist Builder.
 
 ## Deployment
 
@@ -10,4 +10,4 @@ Publish the repository root with GitHub Pages once the static application files 
 
 This repository is intended as the master source; versioned backups are kept in Google Drive `/ChatGPT/Apps/`.
 
-**Status:** Repository initialized; application files and GitHub Pages publishing still pending.
+**Status:** Application sources deployed to the main branch.
