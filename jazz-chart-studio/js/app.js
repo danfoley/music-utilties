@@ -54,14 +54,31 @@
   }
   function registrySave(){const imported=Object.fromEntries(Object.entries(registry).filter(([id])=>!builtinIds.has(id)));try{localStorage.setItem(generatorStorageKey,JSON.stringify(imported));localStorage.setItem(selectedStorageKey,def.id);}catch(e){status('Could not save generator registry: '+e.message);}}
   function registryUI(){
-    const select=$('#generator-select');select.replaceChildren();const list=$('#generator-list');list.replaceChildren();
-    Object.values(registry).forEach(d=>{
+    const select=$('#generator-select');select.replaceChildren();
+    const list=$('#generator-list');list.replaceChildren();
+    const definitions=Object.values(registry);
+    $('#generator-count').textContent=definitions.length+' installed';
+    definitions.forEach(d=>{
       const option=document.createElement('option');option.value=d.id;option.textContent=d.name;select.appendChild(option);
-      const row=document.createElement('div');row.className='actions';row.style.marginBottom='10px';
-      const label=document.createElement('span');label.textContent=d.name+' · schema v'+d.schemaVersion+(builtinIds.has(d.id)?' · built-in':' · imported');row.appendChild(label);
-      const button=document.createElement('button');button.textContent=builtinIds.has(d.id)?'Built-in (protected)':'Delete';button.disabled=builtinIds.has(d.id);
-      button.onclick=()=>{if(!confirm('Delete generator '+d.name+'? Saved chart batches will not be erased.'))return;delete registry[d.id];if(def.id===d.id){def=registry['random-dominant-sevenths'];definitionSource='built-in';loadBatchOrFresh();}registrySave();registryUI();status('Generator deleted.');};row.appendChild(button);list.appendChild(row);
-    });select.value=def.id;$('#generator-heading').textContent=def.name;
+      const row=document.createElement('div');row.className='generator-library-row'+(d.id===def.id?' is-active':'');
+      const info=document.createElement('div');info.className='generator-library-info';
+      const title=document.createElement('div');title.className='generator-library-name';title.textContent=d.name;
+      const detail=document.createElement('div');detail.className='generator-library-detail';
+      detail.textContent=d.bars+' bars · '+(d.strategy?.type==='cycle'?'Cycle':'Shuffle')+' · JSON v'+d.schemaVersion;
+      const badge=document.createElement('span');badge.className='generator-library-badge';badge.textContent=builtinIds.has(d.id)?'Built-in':'Imported';
+      info.append(title,detail,badge);
+      const actions=document.createElement('div');actions.className='generator-library-actions';
+      const use=document.createElement('button');use.type='button';use.textContent=d.id===def.id?'Active':'Use generator';use.disabled=d.id===def.id;
+      use.onclick=()=>{def=d;definitionSource=builtinIds.has(d.id)?'built-in':'browser-imported';registrySave();registryUI();loadBatchOrFresh();};
+      actions.appendChild(use);
+      if(!builtinIds.has(d.id)){
+        const remove=document.createElement('button');remove.type='button';remove.className='generator-remove';remove.textContent='Delete';
+        remove.onclick=()=>{if(!confirm('Delete generator '+d.name+'? Saved chart batches will not be erased.'))return;delete registry[d.id];if(def.id===d.id){def=registry['random-dominant-sevenths'];definitionSource='built-in';loadBatchOrFresh();}registrySave();registryUI();status('Generator deleted.');};
+        actions.appendChild(remove);
+      }
+      row.append(info,actions);list.appendChild(row);
+    });
+    select.value=def.id;$('#generator-heading').textContent=def.name;
   }
   function batchKey(){return def.id;}
   function loadBatchOrFresh(){let saved;try{saved=JSON.parse(localStorage.getItem(storageKey)||'{}')[batchKey()];}catch(e){}
@@ -258,7 +275,8 @@
     $('#simple').href=makeLink({title:'JCS Four Bar Test',style:'Medium Swing',key:'C',timeSignature:'4/4',barsPerLine:4,measures:['C7','F7','G7','C7']});
     try{const r=await fetch('generators/circle-dominant-sevenths.json',{cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const checked=generatorCheck(await r.json());if(!checked.pass)throw Error(checked.errors.join('; '));registry[checked.definition.id]=checked.definition;}catch(e){status('Circle generator failed to load: '+e.message);}
     registryUI();loadBatchOrFresh();
-    $('#manage-generators').onclick=()=>{$('#generator-manager').hidden=!$('#generator-manager').hidden;};
+    $('#manage-generators').onclick=()=>{const panel=$('#generator-manager');panel.hidden=!panel.hidden;$('#manage-generators').setAttribute('aria-expanded',String(!panel.hidden));};
+    $('#close-generator-manager').onclick=()=>{$('#generator-manager').hidden=true;$('#manage-generators').setAttribute('aria-expanded','false');$('#manage-generators').focus();};
     $('#generator-select').onchange=()=>{def=registry[$('#generator-select').value];definitionSource=builtinIds.has(def.id)?'built-in':'browser-imported';registrySave();registryUI();loadBatchOrFresh();};
     $('#generator-file').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const parsed=JSON.parse(await file.text());const checked=generatorCheck(parsed);if(!checked.pass)throw Error(checked.errors.join('; '));const d=checked.definition;if(builtinIds.has(d.id))throw Error('Cannot overwrite a built-in generator');if(registry[d.id]&&!confirm('Replace imported generator '+d.id+'?'))return;registry[d.id]=d;def=d;definitionSource='browser-imported: '+file.name;registrySave();registryUI();loadBatchOrFresh();$('#generator-message').textContent='Installed '+d.name+(checked.legacy?' (legacy JSON migrated to schema v1)':'')+'.';}catch(err){$('#generator-message').textContent='Import rejected: '+err.message;}finally{e.target.value='';}};
     $('#export-generator').onclick=()=>download(def.id+'.json',JSON.stringify(def,null,2),'application/json');
