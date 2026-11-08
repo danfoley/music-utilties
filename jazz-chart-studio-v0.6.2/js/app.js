@@ -1,7 +1,7 @@
 'use strict';
 (()=>{
   const $ = s => document.querySelector(s);
-  const APP_VERSION='0.6.2', SCHEMA_VERSION=1, generatorStorageKey='jcs-v05-generators', selectedStorageKey='jcs-v05-selected-generator';
+  const APP_VERSION='0.6.3', SCHEMA_VERSION=1, generatorStorageKey='jcs-v05-generators', selectedStorageKey='jcs-v05-selected-generator';
   const definitionFallback={id:'random-dominant-sevenths',name:'Random Dominant Sevenths',title:'Random Dominant Sevenths — 32 Bars',key:'C',style:'Medium Swing',timeSignature:'4/4',bars:32,barsPerLine:4,barsPerSelection:2,chords:['A7','D7','G7','C7','F7','Bb7','Eb7','Ab7','C#7','F#7','B7','E7','Db7'],repeatDistinctChordCount:3,maxSelectionsPerChord:2,requireAllChords:true,forbidAdjacentSelectionsOfSameChord:true};
   let def=definitionFallback,chart=null,batch=[],mode="chart",genuine=null,definitionSource='embedded fallback';
   const storageKey='jazz-chart-studio-v05-batches';
