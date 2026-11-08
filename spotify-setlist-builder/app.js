@@ -161,74 +161,6 @@
           view = "main",
           busy = false,
           searchSerial = 0;
-        const demoTracks = [
-          {
-            id: "4LyyZeh2QR9gbXxpSwo4gG",
-            name: "Fly Me to the Moon — Live",
-            artists: [{ name: "Diana Krall" }],
-            album: { name: "A Night in Paris", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/4LyyZeh2QR9gbXxpSwo4gG",
-            },
-            uri: "spotify:track:4LyyZeh2QR9gbXxpSwo4gG",
-            demo: true,
-          },
-          {
-            id: "6kZfCVfoVJBngpQEdO9Jqm",
-            name: "Fly Me to the Moon — Live",
-            artists: [{ name: "Diana Krall" }],
-            album: { name: "The Very Best of Diana Krall", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/6kZfCVfoVJBngpQEdO9Jqm",
-            },
-            uri: "spotify:track:6kZfCVfoVJBngpQEdO9Jqm",
-            demo: true,
-          },
-          {
-            id: "081AHcLTz6opbo1V9XN8eL",
-            name: "Fly Me to the Moon",
-            artists: [{ name: "Frank Sinatra" }],
-            album: { name: "It Might As Well Be Swing", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/081AHcLTz6opbo1V9XN8eL",
-            },
-            uri: "spotify:track:081AHcLTz6opbo1V9XN8eL",
-            demo: true,
-          },
-          {
-            id: "2wa7SADeTMrvqCloKFbCcp",
-            name: "Fly Me to the Moon",
-            artists: [{ name: "Tony Bennett" }],
-            album: { name: "As Time Goes By", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/2wa7SADeTMrvqCloKFbCcp",
-            },
-            uri: "spotify:track:2wa7SADeTMrvqCloKFbCcp",
-            demo: true,
-          },
-          {
-            id: "7kignDrfUMiXfhxCeaWiSg",
-            name: "The Look of Love",
-            artists: [{ name: "Diana Krall" }],
-            album: { name: "The Look of Love", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/7kignDrfUMiXfhxCeaWiSg",
-            },
-            uri: "spotify:track:7kignDrfUMiXfhxCeaWiSg",
-            demo: true,
-          },
-          {
-            id: "2o0s3NkTsZAHlW0HYcJVeB",
-            name: "Autumn Leaves",
-            artists: [{ name: "Bill Evans Trio" }],
-            album: { name: "Portrait in Jazz", images: [] },
-            external_urls: {
-              spotify: "https://open.spotify.com/track/2o0s3NkTsZAHlW0HYcJVeB",
-            },
-            uri: "spotify:track:2o0s3NkTsZAHlW0HYcJVeB",
-            demo: true,
-          },
-        ];
         function save() {
           localStorage.setItem(
             STORE,
@@ -415,10 +347,10 @@
               : "Use this recording →";
           $("matchSource").textContent = token
             ? "Live Spotify"
-            : "Offline catalog";
+            : "Spotify disconnected";
           $("resultsNote").textContent = token
             ? "Press Search to query Spotify."
-            : "Offline examples only. For initial choices for every song, connect Spotify in Settings.";
+            : "Connect Spotify to search for recordings.";
           $("results").replaceChildren();
           if (candidate === "skip") {
             $("resultsNote").textContent =
@@ -427,9 +359,7 @@
             results = [candidate];
             renderResults();
           }
-          searchTracks(song.title, true).catch((e) =>
-            flash(e.message, "error"),
-          );
+          // Wait for the user to search; never populate recordings from a built-in catalog.
         }
         function renderResults() {
           let root = $("results");
@@ -439,7 +369,7 @@
               rank(b, $("searchTerm").value) - rank(a, $("searchTerm").value),
           );
           $("resultsNote").textContent = sorted.length
-            ? `${sorted.length} matching recordings · ${token ? "Spotify live search" : "offline demo catalog"}`
+            ? `${sorted.length} matching recordings · Spotify search`
             : "No matching recordings. Try another artist, title or Spotify track URL.";
           for (const t of sorted) {
             const selected = candidate && candidate.id === t.id;
@@ -475,7 +405,7 @@
           $("searchBtn").innerHTML = '<span class="loading"></span> Searching';
           $("resultsNote").textContent = token
             ? "Searching Spotify catalog…"
-            : "Searching the limited offline example catalog…";
+            : "Connect Spotify to search for recordings.";
           try {
             let found = [];
             if (token) {
@@ -502,24 +432,8 @@
                 susanNames: susanMap.get(t.id) || [],
               }));
             } else {
-              const normalized = term.toLowerCase().trim();
-              const tokens = normalized
-                .split(/\s+/)
-                .filter((x) => x.length > 2);
-              found = demoTracks
-                .filter((t) => {
-                  const hay = (
-                    t.name +
-                    " " +
-                    trackArtist(t) +
-                    " " +
-                    t.album.name
-                  ).toLowerCase();
-                  return (
-                    tokens.length > 0 && tokens.every((w) => hay.includes(w))
-                  );
-                })
-                .sort((a, b) => rank(b, term) - rank(a, term));
+              // No offline catalog: results must come from an authenticated Spotify search.
+              found = [];
             }
             if (request !== searchSerial || songIndex !== app.index) return;
             results = found;
@@ -531,9 +445,7 @@
               results.unshift(candidate);
             renderResults();
             if (!token) {
-              $("resultsNote").textContent = found.length
-                ? `${found.length} example recording(s). This is NOT a live Spotify search. Connect Spotify in Settings for all songs and artists.`
-                : "No examples for this search. Connect Spotify in Settings to search its full catalog, or paste a track link.";
+              $("resultsNote").textContent = "Connect Spotify to search for recordings.";
             }
           } catch (e) {
             if (request !== searchSerial) return;
