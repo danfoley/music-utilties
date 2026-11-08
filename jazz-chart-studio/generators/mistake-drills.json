@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 2,
+  "id": "mistake-drills",
+  "name": "Mistake Drill Generator",
+  "title": "Mistake Drill — Practice Chart",
+  "key": "C",
+  "style": "Medium Swing",
+  "timeSignature": "4/4",
+  "bars": 4,
+  "barsPerLine": 4,
+  "barsPerSelection": 2,
+  "strategy": {
+    "type": "mistakes",
+    "inputFormat": "json",
+    "barsPerMistake": 2
+  },
+  "playlist": {
+    "titleTemplate": "{name} {number}",
+    "minCharts": 2,
+    "maxCharts": 50
+  },
+  "validation": {
+    "requireMistakeInput": true
+  }
+}
