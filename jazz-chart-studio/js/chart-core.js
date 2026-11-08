@@ -63,7 +63,7 @@ window.JazzChartCore = (() => {
         .replace(/\\s+(?:dominant\\s*)?(?:seventh|7th)$/i, "7")
         .replace(/\\s+/g, "");
       const chord = /^[A-G](?:#|b)?$/.test(normalized) ? normalized + "7" : normalized;
-      if (!/^[A-G](?:#|b)?(?:m|maj|dim|aug|sus|add|M|ø|°|\\+|\\-|\\d|#|b|\\(|\\)){0,20}$/i.test(chord))
+      if (!/^[A-G](?:#|b)?[A-Za-z0-9#b()+°ø-]*$/.test(chord))
         throw Error("Invalid chord symbol: " + raw);
       chords.push(chord);
     }
