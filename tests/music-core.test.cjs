@@ -22,6 +22,10 @@ for (const [direction, step] of Object.entries(circle.strategy.intervals)) {
   }
 }
 assert.equal(jazz.shuffle(["A", "B", "C"]).length, 3);
+const mistakes = jazz.parseMistakeChords({ mistakes: ["C7", { chord: "Eb7" }, { symbol: "G7" }, "C7"] });
+assert.equal(mistakes.join(","), "C7,Eb7,G7,C7");
+assert.equal(mistakes.length * 2, 8);
+assert.throws(() => jazz.parseMistakeChords({ mistakes: [] }));
 const spotify = load("spotify-setlist-builder/setlist-core.js", "SpotifySetlistCore");
 const parsed = spotify.parse("Set 1\n1. Fly Me to the Moon\n2. Misty\nExtras\n3. Encore");
 assert.equal(parsed.main, 2);
