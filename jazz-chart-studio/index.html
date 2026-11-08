@@ -300,6 +300,15 @@
             starting root for each playlist chart</label
           >
         </div>
+        <section id="mistake-options" class="mistake-options" hidden aria-label="Mistake drill data">
+          <h3>Practice your mistakes</h3>
+          <p class="muted">Select a mistakes JSON file. Each mistake becomes two measures in one iReal Pro chart. Your mistakes stay in this browser.</p>
+          <label class="generator-upload" for="mistake-file">Select Mistakes
+            <input type="file" id="mistake-file" accept=".json,application/json" />
+          </label>
+          <p id="mistake-file-status" role="status" aria-live="polite">No mistake file selected.</p>
+          <div id="mistake-selection" class="mistake-selection"></div>
+        </section>
         <div class="actions main-actions">
           <button class="primary" id="generate">Generate chart</button
           ><a id="open-ireal" class="action-link primary" href="#"
