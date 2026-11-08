@@ -49,3 +49,8 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
 #generator-manager{background:#f8fafb;box-shadow:none;border-color:#d7e3e9;margin:18px 0}
 @media(max-width:700px){.wrap{padding:22px 13px 34px}.studio-header{align-items:flex-start;margin-bottom:20px}.studio-header h1{font-size:2.65rem}.version-pill{font-size:.75rem}.panel{padding:17px 14px;border-radius:12px}.generator-toolbar label{flex-wrap:wrap}.generator-toolbar select{width:100%;max-width:none}.main-actions>*{flex:1 1 180px;text-align:center}.preview-heading{align-items:flex-start;display:block}.preview-heading h3{margin-top:5px}#score{padding:9px 10px}.bar{padding:9px 6px 23px;min-height:68px}.system{margin:12px 0 20px}}
 @media(prefers-reduced-motion:reduce){button,.action-link{transition:none}}
+
+/* Keep playlist random-root checkbox compact and aligned with its label. */
+#circle-options #random-start-label{display:inline-flex;flex-direction:row;align-items:center;gap:9px;align-self:flex-end;min-height:44px;max-width:100%;font-weight:600;cursor:pointer}
+#circle-options #random-starts{appearance:auto;box-sizing:border-box;flex:0 0 17px;width:17px;height:17px;min-width:17px;min-height:17px;max-width:17px;margin:0;padding:0;accent-color:#217d80;cursor:pointer}
+@media(max-width:700px){#circle-options #random-start-label{align-self:flex-start;min-height:34px}}
