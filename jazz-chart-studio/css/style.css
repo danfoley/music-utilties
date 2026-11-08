@@ -190,3 +190,12 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
  .generator-library-row{align-items:flex-start;flex-direction:column}
  .generator-library-actions{width:100%}
 }
+
+/* Read-only schema reference in generator library */
+.generator-schema-download{display:inline-flex;align-items:center;justify-content:center;min-height:42px;padding:10px 15px;border:1px solid var(--mu-line,#cbd8df);border-radius:9px;color:var(--mu-ink,#24485b);background:var(--mu-surface,#fff);font-size:13px;font-weight:700;text-decoration:none}
+.generator-schema-download:hover{border-color:var(--mu-accent,#28747c)}
+#generator-schema-view[hidden]{display:none!important}
+#generator-schema-view{min-width:0;border:1px solid var(--mu-line,#dce6ea);border-radius:11px;overflow:hidden}
+.generator-schema-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;background:var(--mu-surface,#f5f8fa);font-size:13px}
+.generator-schema-heading button{font-size:12px;padding:7px 11px}
+#generator-schema-text{max-height:360px;overflow:auto;white-space:pre;tab-size:2;margin:0;padding:16px;background:var(--mu-surface,#fff);color:var(--mu-ink,#193b4c);font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
