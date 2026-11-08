@@ -1117,7 +1117,7 @@
     try { mixedOptions = JSON.parse(localStorage.getItem(mixedStorageKey) || "{}"); }
     catch { mixedOptions = {}; }
     const last = localStorage.getItem(selectedStorageKey);
-    if (last && registry[last]) def = registry[last];
+    // Restore selection after every built-in definition has been registered.
     $("#app-version").textContent = APP_VERSION;
     $("#simple").href = makeLink({
       title: "JCS Four Bar Test",
@@ -1156,6 +1156,7 @@
     } catch (error) {
       status("Mixed seventh generator failed to load: " + error.message);
     }
+    if (last && registry[last]) def = registry[last];
     registryUI();
     if (def.strategy?.type === "mistakes" && !mistakeChords.length) {
       def = registry["random-dominant-sevenths"];
