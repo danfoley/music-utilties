@@ -77,3 +77,56 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
   background-size:100% 100%;background-repeat:no-repeat
 }
 #circle-options #random-starts:focus-visible{outline:3px solid #74bbb7;outline-offset:3px}
+
+/* Generator picker: one purposeful field with a secondary management action.
+   Native select retains reliable iPad and keyboard interaction. */
+.workspace .generator-toolbar{
+ display:flex;align-items:end;justify-content:flex-start;gap:14px 20px;
+ flex-wrap:wrap;margin:0 0 22px;padding:0 0 22px;
+ border-bottom:1px solid #dce6ea
+}
+.workspace .generator-toolbar .generator-picker{
+ display:flex;flex-direction:column;align-items:stretch;gap:7px;
+ flex:0 1 360px;min-width:min(100%,270px);margin:0;
+ font-weight:650
+}
+.workspace .generator-picker-label{
+ font-size:13px;font-weight:700;line-height:1.35;letter-spacing:.005em;
+ color:var(--mu-muted,#405c6c)
+}
+.workspace .generator-picker-control{display:block;position:relative;width:100%}
+.workspace .generator-toolbar #generator-select{
+ display:block;box-sizing:border-box;appearance:none;-webkit-appearance:none;
+ width:100%;max-width:none;min-width:0;height:46px;min-height:46px;
+ padding:10px 44px 10px 15px;margin:0;
+ border:1px solid var(--mu-line,#b9cbd5);border-radius:10px;
+ background:var(--mu-surface,#f9fbfc);color:var(--mu-ink,#193b4c);
+ font:650 14px/1.35 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;
+ box-shadow:0 1px 2px rgba(16,42,55,.035);cursor:pointer
+}
+.workspace .generator-picker-control::after{
+ content:"";position:absolute;right:18px;top:50%;
+ width:8px;height:8px;border-right:2px solid var(--mu-accent,#28747c);
+ border-bottom:2px solid var(--mu-accent,#28747c);
+ transform:translateY(-70%) rotate(45deg);pointer-events:none
+}
+.workspace .generator-toolbar #generator-select:hover{
+ border-color:var(--mu-accent,#28747c)
+}
+.workspace .generator-toolbar #generator-select:focus-visible{
+ outline:3px solid var(--mu-accent,#74bbb7);outline-offset:2px
+}
+.workspace .generator-toolbar #manage-generators{
+ flex:0 0 auto;min-height:46px;margin:0;padding:10px 16px;
+ border:1px solid var(--mu-line,#b9cbd5);border-radius:10px;
+ background:var(--mu-surface,#fff);color:var(--mu-ink,#24485b);
+ font-size:13px;font-weight:700;white-space:nowrap
+}
+.workspace .generator-toolbar #manage-generators:hover{
+ border-color:var(--mu-accent,#28747c)
+}
+@media(max-width:600px){
+ .workspace .generator-toolbar{align-items:stretch;gap:12px}
+ .workspace .generator-toolbar .generator-picker{flex:1 1 100%;min-width:0}
+ .workspace .generator-toolbar #manage-generators{align-self:flex-start}
+}
