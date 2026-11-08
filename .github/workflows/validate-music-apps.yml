@@ -1,0 +1,34 @@
+name: Validate music app JavaScript
+on:
+  push:
+    paths:
+      - 'jazz-chart-studio/**'
+      - 'spotify-setlist-builder/**'
+      - '.github/workflows/validate-music-apps.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  javascript-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: |
+          node --check jazz-chart-studio/js/app.js
+          node --check spotify-setlist-builder/app.js
+      - name: Verify application script references
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          for (const [htmlPath, jsPath] of [
+            ['jazz-chart-studio/index.html', 'js/app.js'],
+            ['spotify-setlist-builder/index.html', 'app.js']
+          ]) {
+            const html = fs.readFileSync(htmlPath, 'utf8');
+            if (!html.includes('src="' + jsPath + '"')) throw Error(htmlPath + ' does not reference ' + jsPath);
+          }
+          NODE
