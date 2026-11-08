@@ -1,15 +1,86 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "id": "circle-dominant-sevenths",
-  "generatorType": "circle-dominant-sevenths",
   "name": "Circle Dominant Sevenths",
-  "title": "Circle Dominant Sevenths \u2014 24 Bars",
+  "title": "Circle Dominant Sevenths — 24 Bars",
   "key": "Eb",
-  "defaultStart": "Eb",
-  "defaultDirection": "fourths",
   "style": "Medium Swing",
   "timeSignature": "4/4",
   "bars": 24,
   "barsPerLine": 4,
-  "barsPerSelection": 2
+  "barsPerSelection": 2,
+  "strategy": {
+    "type": "cycle",
+    "roots": [
+      "C",
+      "F",
+      "Bb",
+      "Eb",
+      "Ab",
+      "Db",
+      "Gb",
+      "B",
+      "E",
+      "A",
+      "D",
+      "G"
+    ],
+    "intervals": {
+      "fourths": 5,
+      "fifths": 7
+    },
+    "chordSuffix": "7",
+    "uniqueRoots": true
+  },
+  "controls": {
+    "startingRoot": {
+      "label": "Starting root",
+      "type": "select",
+      "options": [
+        "C",
+        "Db",
+        "D",
+        "Eb",
+        "E",
+        "F",
+        "Gb",
+        "G",
+        "Ab",
+        "A",
+        "Bb",
+        "B"
+      ],
+      "default": "Eb"
+    },
+    "direction": {
+      "label": "Direction",
+      "type": "select",
+      "options": [
+        {
+          "value": "fourths",
+          "label": "Circle of fourths"
+        },
+        {
+          "value": "fifths",
+          "label": "Circle of fifths"
+        }
+      ],
+      "default": "fourths"
+    },
+    "randomPlaylistStarts": {
+      "label": "Random starting root for each playlist chart",
+      "type": "checkbox",
+      "default": true,
+      "playlistOnly": true
+    }
+  },
+  "playlist": {
+    "titleTemplate": "{name} {number}",
+    "minCharts": 2,
+    "maxCharts": 50
+  },
+  "validation": {
+    "allDistinct": true,
+    "requireCycleInterval": true
+  }
 }
