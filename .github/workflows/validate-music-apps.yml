@@ -4,6 +4,7 @@ on:
     paths:
       - 'jazz-chart-studio/**'
       - 'spotify-setlist-builder/**'
+      - 'tests/**'
       - '.github/workflows/validate-music-apps.yml'
   workflow_dispatch:
 permissions:
@@ -18,8 +19,12 @@ jobs:
           node-version: '22'
       - name: Check JavaScript syntax
         run: |
+          node --check jazz-chart-studio/js/chart-core.js
           node --check jazz-chart-studio/js/app.js
+          node --check spotify-setlist-builder/setlist-core.js
           node --check spotify-setlist-builder/app.js
+      - name: Run core regression tests
+        run: node tests/music-core.test.cjs
       - name: Verify application script references
         run: |
           node - <<'NODE'
