@@ -355,9 +355,6 @@
           if (candidate === "skip") {
             $("resultsNote").textContent =
               "Previously skipped. Search to choose a recording, or skip again.";
-          } else if (candidate) {
-            results = [candidate];
-            renderResults();
           }
           // Wait for the user to search; never populate recordings from a built-in catalog.
         }
