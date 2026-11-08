@@ -1009,6 +1009,18 @@
                 </button>
               </div>
             </div>
+            <div class="field" style="margin-top:12px">
+              <label for="priorityPlaylistEnabled" class="inline">
+                <input type="checkbox" class="checkbox" id="priorityPlaylistEnabled" />
+                Prioritize existing setlists
+              </label>
+              <input id="priorityPlaylistKeyword" type="text" autocomplete="off"
+                placeholder="Playlist name contains… e.g. susan"
+                aria-label="Prioritize tracks from playlists containing this word" />
+              <div id="priorityPlaylistStatus" class="small" aria-live="polite">
+                Enter part of a Spotify playlist name to favor matching recordings.
+              </div>
+            </div>
             <div id="resultsNote" class="small">
               Search results will appear here.
             </div>
