@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Jazz Chart Studio Generator Definition v2",
-  "description": "Declarative generator definitions. Strategy cycle and shuffle are interpreted by the shared chart engine.",
+  "description": "Declarative cycle, shuffle, and built-in mistake-drill generator definitions.",
   "type": "object",
   "required": [
     "schemaVersion",
@@ -63,6 +63,9 @@
         },
         {
           "$ref": "#/$defs/shuffle"
+        },
+        {
+          "$ref": "#/$defs/mistakes"
         }
       ]
     },
@@ -246,6 +249,25 @@
         },
         "playlistOnly": {
           "type": "boolean"
+        }
+      }
+    },
+    "mistakes": {
+      "type": "object",
+      "required": [
+        "type",
+        "inputFormat",
+        "barsPerMistake"
+      ],
+      "properties": {
+        "type": {
+          "const": "mistakes"
+        },
+        "inputFormat": {
+          "const": "json"
+        },
+        "barsPerMistake": {
+          "const": 2
         }
       }
     }
