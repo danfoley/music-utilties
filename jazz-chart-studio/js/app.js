@@ -1,37 +1,56 @@
 'use strict';
 (()=>{
   const $ = s => document.querySelector(s);
-  const APP_VERSION='0.6.3', SCHEMA_VERSION=1, generatorStorageKey='jcs-v05-generators', selectedStorageKey='jcs-v05-selected-generator';
-  const definitionFallback={id:'random-dominant-sevenths',name:'Random Dominant Sevenths',title:'Random Dominant Sevenths — 32 Bars',key:'C',style:'Medium Swing',timeSignature:'4/4',bars:32,barsPerLine:4,barsPerSelection:2,chords:['A7','D7','G7','C7','F7','Bb7','Eb7','Ab7','C#7','F#7','B7','E7','Db7'],repeatDistinctChordCount:3,maxSelectionsPerChord:2,requireAllChords:true,forbidAdjacentSelectionsOfSameChord:true};
+  const APP_VERSION='0.7.0', SCHEMA_VERSION=2, generatorStorageKey='jcs-v05-generators', selectedStorageKey='jcs-v05-selected-generator';
+  const definitionFallback={"schemaVersion":2,"id":"random-dominant-sevenths","name":"Random Dominant Sevenths","title":"Random Dominant Sevenths — 32 Bars","key":"C","style":"Medium Swing","timeSignature":"4/4","bars":32,"barsPerLine":4,"barsPerSelection":2,"strategy":{"type":"shuffle","chords":["A7","D7","G7","C7","F7","Bb7","Eb7","Ab7","C#7","F#7","B7","E7","Db7"],"repeatDistinctChordCount":3,"maxSelectionsPerChord":2,"requireAllChords":true,"forbidAdjacentSelectionsOfSameChord":true},"playlist":{"titleTemplate":"{name} {number}","minCharts":2,"maxCharts":50},"validation":{"requireAllChords":true,"forbidAdjacentSelectionsOfSameChord":true}};
   let def=definitionFallback,chart=null,batch=[],mode="chart",genuine=null,definitionSource='embedded fallback';
   const storageKey='jazz-chart-studio-v05-batches';
   let registry={},builtinIds=new Set(['random-dominant-sevenths','circle-dominant-sevenths']);
-  const circleFourth=['C','F','Bb','Eb','Ab','Db','Gb','B','E','A','D','G'];
-  const circleFifth=['C','G','D','A','E','B','F#','C#','G#','D#','A#','F'];
-  const circleRoots=[...new Set([...circleFourth,...circleFifth])];
-  const isCircle=d=>d.generatorType==='circle-dominant-sevenths';
+  const PITCH={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+  const isCycle=d=>d.strategy?.type==='cycle';
+  const optionValue=x=>typeof x==='string'?x:x.value;
+  const controls=d=>d.controls||{};
+  const startControl=d=>controls(d).startingRoot;
+  const directionControl=d=>controls(d).direction;
+  const randomControl=d=>controls(d).randomPlaylistStarts;
   const circleStart=()=>$('#starting-key').value;
   const circleDirection=()=>$('#circle-direction').value;
-  const randomStart=()=>circleRoots[Math.floor(Math.random()*circleRoots.length)];
+  const randomStart=d=>{const opts=startControl(d).options.map(optionValue);return opts[Math.floor(Math.random()*opts.length)];};
   function generatorCheck(input){
-    const d={...input};const errors=[];
-    if(d.schemaVersion===undefined)d.schemaVersion=1; // legacy v0.3/v0.4 JSON
-    if(d.schemaVersion!==SCHEMA_VERSION)errors.push('Unsupported generator schemaVersion '+d.schemaVersion);
+    const d=JSON.parse(JSON.stringify(input)),errors=[];
+    if(d.schemaVersion===undefined)d.schemaVersion=1;
+    if(d.schemaVersion===1){
+      // Backwards-compatible migration for saved v1 generators.
+      if(d.generatorType==='circle-dominant-sevenths'){
+        d.strategy={type:'cycle',roots:['C','F','Bb','Eb','Ab','Db','Gb','B','E','A','D','G'],intervals:{fourths:5,fifths:7},chordSuffix:'7',uniqueRoots:true};
+        d.controls={startingRoot:{label:'Starting root',type:'select',options:['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],default:d.defaultStart||'Eb'},direction:{label:'Direction',type:'select',options:[{value:'fourths',label:'Circle of fourths'},{value:'fifths',label:'Circle of fifths'}],default:d.defaultDirection||'fourths'},randomPlaylistStarts:{label:'Random starting root for each playlist chart',type:'checkbox',default:true,playlistOnly:true}};
+      }else{
+        d.strategy={type:'shuffle',chords:d.chords,repeatDistinctChordCount:d.repeatDistinctChordCount,maxSelectionsPerChord:d.maxSelectionsPerChord,requireAllChords:d.requireAllChords,forbidAdjacentSelectionsOfSameChord:d.forbidAdjacentSelectionsOfSameChord};
+      }
+      d.playlist={titleTemplate:'{name} {number}',minCharts:2,maxCharts:50};d.schemaVersion=2;
+    }
+    if(d.schemaVersion!==2)errors.push('Unsupported generator schemaVersion '+d.schemaVersion);
     if(typeof d.id!=='string'||!/^[a-z0-9][a-z0-9-]{1,63}$/.test(d.id))errors.push('Invalid generator ID');
     for(const k of ['name','title','key','style'])if(typeof d[k]!=='string'||!d[k].trim())errors.push('Missing '+k);
-    if(isCircle(d)){
-      if(d.timeSignature!=='4/4'||d.barsPerLine!==4||d.bars!==24||d.barsPerSelection!==2)errors.push('Circle generator requires 24 bars, 2 bars per chord, 4/4 and four bars per line');
-      if(!['fourths','fifths'].includes(d.defaultDirection))errors.push('Invalid defaultDirection');
-      if(!circleRoots.includes(d.defaultStart))errors.push('Invalid defaultStart');
-      return {pass:!errors.length,errors,definition:d,legacy:input.schemaVersion===undefined};
-    }
-    if(d.timeSignature!=='4/4')errors.push('Current exporter supports 4/4 only');
-    if(d.barsPerLine!==4)errors.push('Current exporter supports 4 bars per line only');
-    for(const k of ['bars','barsPerSelection','repeatDistinctChordCount','maxSelectionsPerChord'])if(!Number.isSafeInteger(d[k])||d[k]<1)errors.push('Invalid '+k);
-    if(!Array.isArray(d.chords)||!d.chords.length||d.chords.some(c=>typeof c!=='string'||!/^[A-G](?:b|#)?(?:7)$/.test(c))||new Set(d.chords).size!==d.chords.length)errors.push('Invalid or duplicate chord spellings (currently dominant sevenths only)');
-    if(!errors.length){const selections=d.bars/d.barsPerSelection;if(!Number.isInteger(selections)||selections!==d.chords.length+d.repeatDistinctChordCount||d.repeatDistinctChordCount>d.chords.length||d.maxSelectionsPerChord!==2)errors.push('Selection counts are not supported by this generator engine');}
-    if(d.requireAllChords!==true||d.forbidAdjacentSelectionsOfSameChord!==true)errors.push('This engine requires all chords and forbids adjacent duplicate selections');
-    return {pass:!errors.length,errors,definition:d,legacy:input.schemaVersion===undefined};
+    if(d.timeSignature!=='4/4'||d.barsPerLine!==4)errors.push('The current iReal exporter supports 4/4 and four bars per line');
+    if(!Number.isSafeInteger(d.bars)||d.bars<4||!Number.isSafeInteger(d.barsPerSelection)||d.barsPerSelection<1||d.bars%d.barsPerSelection)errors.push('Invalid bar count or barsPerSelection');
+    const st=d.strategy||{};
+    if(st.type==='cycle'){
+      if(!Array.isArray(st.roots)||st.roots.length<2||st.roots.some(x=>!Number.isInteger(PITCH[x]))||new Set(st.roots.map(x=>PITCH[x])).size!==st.roots.length)errors.push('Cycle roots must be unique valid pitch classes');
+      if(!st.intervals||!Object.keys(st.intervals).length||Object.values(st.intervals).some(x=>!Number.isInteger(x)||x<1||x>11))errors.push('Invalid cycle intervals');
+      if(typeof st.chordSuffix!=='string'||!/^[a-zA-Z0-9+#b-]{1,12}$/.test(st.chordSuffix))errors.push('Invalid chord suffix');
+      if(d.bars!==st.roots?.length*d.barsPerSelection)errors.push('Cycle length must equal chart bars');
+      const ctl=controls(d);
+      if(!ctl.startingRoot||!Array.isArray(ctl.startingRoot.options)||ctl.startingRoot.options.some(x=>!Number.isInteger(PITCH[optionValue(x)]))||!ctl.startingRoot.options.some(x=>optionValue(x)===ctl.startingRoot.default))errors.push('Invalid startingRoot control');
+      if(!ctl.direction||!Array.isArray(ctl.direction.options)||ctl.direction.options.some(x=>!(optionValue(x) in st.intervals))||!ctl.direction.options.some(x=>optionValue(x)===ctl.direction.default))errors.push('Invalid direction control');
+    }else if(st.type==='shuffle'){
+      if(!Array.isArray(st.chords)||!st.chords.length||st.chords.some(x=>typeof x!=='string'||!/^[A-G](?:b|#)?7$/.test(x))||new Set(st.chords).size!==st.chords.length)errors.push('Invalid or duplicate chord spellings');
+      if(!Number.isSafeInteger(st.repeatDistinctChordCount)||st.repeatDistinctChordCount<0||st.repeatDistinctChordCount>st.chords?.length||st.maxSelectionsPerChord!==2)errors.push('Invalid repetition rules');
+      if(d.bars/d.barsPerSelection!==st.chords?.length+st.repeatDistinctChordCount)errors.push('Chord counts do not fit the chart length');
+      if(st.requireAllChords!==true||st.forbidAdjacentSelectionsOfSameChord!==true)errors.push('Unsupported shuffle constraints');
+    }else errors.push('Unknown strategy type');
+    if(!d.playlist||!Number.isInteger(d.playlist.minCharts)||!Number.isInteger(d.playlist.maxCharts)||d.playlist.minCharts<2||d.playlist.maxCharts>50||d.playlist.minCharts>d.playlist.maxCharts||typeof d.playlist.titleTemplate!=='string')errors.push('Invalid playlist settings');
+    return {pass:!errors.length,errors,definition:d,legacy:input.schemaVersion!==2};
   }
   function registrySave(){const imported=Object.fromEntries(Object.entries(registry).filter(([id])=>!builtinIds.has(id)));try{localStorage.setItem(generatorStorageKey,JSON.stringify(imported));localStorage.setItem(selectedStorageKey,def.id);}catch(e){status('Could not save generator registry: '+e.message);}}
   function registryUI(){
@@ -49,63 +68,59 @@
     if(saved&&['chart','playlist'].includes(saved.mode)&&Array.isArray(saved.batch)&&saved.batch.length&&saved.batch.every(c=>validate(c,def).pass)){mode=saved.mode;batch=saved.batch;chart=batch[0];}
     else{mode='chart';batch=[build(def)];chart=batch[0];}
     $('#export-mode').value=mode;$('#playlist-count').value=mode==='playlist'?String(batch.length):'12';
-    $('#starting-key').value=isCircle(def)?def.defaultStart:'Eb';$('#circle-direction').value=isCircle(def)?def.defaultDirection:'fourths';refreshControls();render();
+    $('#starting-key').value=isCycle(def)?startControl(def).default:'Eb';$('#circle-direction').value=isCycle(def)?directionControl(def).default:'fourths';if(isCycle(def)){$('#random-starts').checked=randomControl(def)?.default!==false;}refreshControls();render();
   }
 
   function shuffle(xs){const a=[...xs];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+  function cycleSequence(d,start,direction){
+    const st=d.strategy,roots=st.roots,byPitch=new Map(roots.map(x=>[PITCH[x],x]));
+    const step=st.intervals[direction],result=[];
+    for(let i=0;i<roots.length;i++){
+      const pitch=(PITCH[start]+i*step)%12;
+      const root=i===0?start:byPitch.get(pitch);
+      if(!root)throw Error('Cycle roots do not cover pitch class '+pitch+' for '+direction);
+      result.push(root+st.chordSuffix);
+    }
+    return result;
+  }
   function build(d){
-    if(isCircle(d)){
-      const start=d._start||d.defaultStart, direction=d._direction||d.defaultDirection;
-      const sequence=direction==='fourths'?circleFourth:circleFifth;
-      // Work in pitch classes so Eb, D# etc. all produce a complete cycle.
-      const pitch={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
-      const index=sequence.findIndex(x=>pitch[x]===pitch[start]);
-      if(index<0)throw Error('Invalid starting root');
-      const picks=Array.from({length:12},(_,i)=>sequence[(index+i)%12]+'7');
-      // Preserve the user-selected spelling for the opening chord.
-      picks[0]=start+'7';
-      return {id:Date.now()+'-'+Math.random().toString(36).slice(2,7),generatorId:d.id,title:d.title,key:start,style:d.style,timeSignature:d.timeSignature,barsPerLine:d.barsPerLine,createdAt:new Date().toISOString(),direction,startKey:start,picks,measures:picks.flatMap(x=>[x,x])};
-    }
-    if(d.bars%d.barsPerSelection)throw Error('Bars must be divisible by bars per selection');
-    const total=d.bars/d.barsPerSelection,extra=total-d.chords.length;
-    if(extra!==d.repeatDistinctChordCount)throw Error('The selected rules do not add up to the chart length');
-    const repeat=shuffle(d.chords).slice(0,extra);
-    const candidates=d.chords.concat(repeat);
-    let picks;
-    // Shuffling a fixed multiset is unbiased among its possible orderings; reject only adjacent duplicates.
-    for(let attempt=0;attempt<10000;attempt++){
-      const proposed=shuffle(candidates);
-      if(proposed.every((x,i)=>i===0||x!==proposed[i-1])){picks=proposed;break;}
-    }
-    if(!picks)throw Error('Could not find a non-adjacent ordering');
-    return {id:Date.now()+'-'+Math.random().toString(36).slice(2,7),generatorId:d.id,title:d.title,key:d.key,style:d.style,timeSignature:d.timeSignature,barsPerLine:d.barsPerLine,createdAt:new Date().toISOString(),picks,measures:picks.flatMap(c=>Array(d.barsPerSelection).fill(c))};
+    const st=d.strategy;let picks,startKey,direction;
+    if(st.type==='cycle'){
+      startKey=d._start||startControl(d).default;
+      direction=d._direction||directionControl(d).default;
+      picks=cycleSequence(d,startKey,direction);
+    }else if(st.type==='shuffle'){
+      const repeats=shuffle(st.chords).slice(0,st.repeatDistinctChordCount);
+      const candidates=st.chords.concat(repeats);
+      for(let attempt=0;attempt<10000;attempt++){
+        const proposed=shuffle(candidates);
+        if(!st.forbidAdjacentSelectionsOfSameChord||proposed.every((x,i)=>!i||x!==proposed[i-1])){picks=proposed;break;}
+      }
+      if(!picks)throw Error('Could not find an ordering satisfying the JSON constraints');
+    }else throw Error('Unsupported strategy');
+    return {id:Date.now()+'-'+Math.random().toString(36).slice(2,7),generatorId:d.id,title:d.title,key:startKey||d.key,style:d.style,timeSignature:d.timeSignature,barsPerLine:d.barsPerLine,createdAt:new Date().toISOString(),...(startKey?{startKey,direction}:{}),picks,measures:picks.flatMap(x=>Array(d.barsPerSelection).fill(x))};
   }
   function validate(c,d){
-    if(isCircle(d)){
-      const errors=[];const pitch={C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,G:'7', 'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};pitch.G=7;
-      if(c.measures.length!==24||c.picks.length!==12)errors.push('Expected 24 measures and 12 chord selections');
-      if(!['fourths','fifths'].includes(c.direction))errors.push('Invalid circle direction');
-      if(c.picks[0]!==c.startKey+'7')errors.push('Starting chord mismatch');
-      const values=c.picks.map(ch=>pitch[ch.slice(0,-1)]);
-      if(values.some(v=>!Number.isInteger(v))||new Set(values).size!==12)errors.push('Must visit all twelve pitch classes');
-      const step=c.direction==='fourths'?5:7;
-      for(let i=0;i<12;i++){if(i&&((values[i-1]+step)%12)!==values[i])errors.push('Circle interval mismatch at selection '+(i+1));
-        if(c.measures[i*2]!==c.picks[i]||c.measures[i*2+1]!==c.picks[i])errors.push('Chord duration mismatch at selection '+(i+1));}
-      if(c.key!==c.startKey||c.style!==d.style||c.timeSignature!==d.timeSignature)errors.push('Metadata mismatch');
-      return {pass:!errors.length,errors,counts:Object.fromEntries(c.picks.map(x=>[x,1])),repeatedChords:[]};
+    const errors=[],st=d.strategy;
+    if(c.measures.length!==d.bars||c.picks.length!==d.bars/d.barsPerSelection)errors.push('Incorrect chart length');
+    if(st.type==='cycle'){
+      if(!st.intervals[c.direction])errors.push('Invalid cycle direction');
+      if(c.picks[0]!==c.startKey+st.chordSuffix)errors.push('Starting chord mismatch');
+      try{const expected=cycleSequence(d,c.startKey,c.direction);if(c.picks.some((x,i)=>x!==expected[i]))errors.push('Cycle progression differs from JSON definition');}catch(e){errors.push(e.message);}
+      if(st.uniqueRoots&&new Set(c.picks.map(x=>PITCH[x.slice(0,-st.chordSuffix.length)])).size!==st.roots.length)errors.push('Duplicate cycle roots');
+    }else{
+      const counts=Object.fromEntries(st.chords.map(x=>[x,0]));
+      for(let i=0;i<c.picks.length;i++){
+        if(!(c.picks[i] in counts))errors.push('Unknown chord '+c.picks[i]);else counts[c.picks[i]]++;
+        if(st.forbidAdjacentSelectionsOfSameChord&&i&&c.picks[i]===c.picks[i-1])errors.push('Adjacent same-chord selections');
+      }
+      if(st.requireAllChords&&Object.values(counts).some(n=>n===0))errors.push('Missing required chord');
+      if(Object.values(counts).filter(n=>n===2).length!==st.repeatDistinctChordCount||Object.values(counts).some(n=>n>st.maxSelectionsPerChord))errors.push('Repetition counts differ from JSON');
     }
-    const errors=[],counts=Object.fromEntries(d.chords.map(x=>[x,0]));
-    if(c.measures.length!==d.bars)errors.push('Incorrect measure count');
-    if(c.picks.length!==d.bars/d.barsPerSelection)errors.push('Incorrect selection count');
-    for(let i=0;i<c.picks.length;i++){
-      const p=c.picks[i];if(!(p in counts))errors.push('Unknown chord '+p);else counts[p]++;
-      if(i&&p===c.picks[i-1])errors.push('Adjacent same-chord selections at '+i);
-      for(let n=0;n<d.barsPerSelection;n++)if(c.measures[i*d.barsPerSelection+n]!==p)errors.push('Measure mismatch at '+(i*d.barsPerSelection+n+1));
-    }
-    if(Object.values(counts).filter(n=>n===2).length!==d.repeatDistinctChordCount)errors.push('Wrong count of doubled chords');
-    if(Object.values(counts).some(n=>n<1||n>d.maxSelectionsPerChord))errors.push('Chord occurrences out of range');
-    if(c.key!==d.key||c.style!==d.style||c.timeSignature!==d.timeSignature)errors.push('Metadata mismatch');
-    return {pass:errors.length===0,errors,counts,repeatedChords:Object.keys(counts).filter(k=>counts[k]===2)};
+    for(let i=0;i<c.picks.length;i++)for(let j=0;j<d.barsPerSelection;j++)if(c.measures[i*d.barsPerSelection+j]!==c.picks[i])errors.push('Chord duration mismatch');
+    if(c.key!==(c.startKey||d.key)||c.style!==d.style||c.timeSignature!==d.timeSignature)errors.push('Metadata mismatch');
+    const counts=Object.fromEntries([...new Set(c.picks)].map(x=>[x,c.picks.filter(y=>y===x).length]));
+    return {pass:!errors.length,errors,counts,repeatedChords:Object.keys(counts).filter(x=>counts[x]>1)};
   }
   function isSameLineRepeat(c,i){return i>0 && i%c.barsPerLine!==0 && c.measures[i]===c.measures[i-1];}
   function displayMeasure(c,i){return isSameLineRepeat(c,i)?'%':c.measures[i];}
@@ -129,7 +144,7 @@
     if(!batch.length)errors.push('Empty batch');
     const names=new Set();
     batch.forEach((c,i)=>{
-      if(c.title!==`${isCircle(def)?def.name:def.name.replace(/Sevenths/i,'Chords')} ${i+1}`)errors.push('Incorrect title at chart '+(i+1));
+      if(c.title!==def.playlist.titleTemplate.replace('{name}',def.name).replace('{number}',String(i+1)))errors.push('Incorrect title at chart '+(i+1));
       if(names.has(c.title))errors.push('Repeated song title '+c.title);names.add(c.title);
       const v=validate(c,def);if(!v.pass)errors.push('Chart '+(i+1)+': '+v.errors.join('; '));
       const rt=consistency(c);if(!rt.pass)errors.push('Round-trip '+(i+1)+': '+rt.errors.join('; '));
@@ -166,7 +181,7 @@
   function render(){
     const c=chart,score=$('#score');score.replaceChildren();
     $('#meta').replaceChildren();
-    for(const s of [isCircle(def)?'Starting root: '+c.startKey:c.key+' major key signature',...(isCircle(def)?['Circle of '+c.direction]:[]),c.style,c.timeSignature,c.measures.length+' measures',c.barsPerLine+' measures per line']){
+    for(const s of [isCycle(def)?'Starting root: '+c.startKey:c.key+' major key signature',...(isCycle(def)?['Circle of '+c.direction]:[]),c.style,c.timeSignature,c.measures.length+' measures',c.barsPerLine+' measures per line']){
       const e=document.createElement('span');e.className='tag';e.textContent=s;$('#meta').appendChild(e);
     }
     for(let i=0;i<c.measures.length;i+=c.barsPerLine){
@@ -192,14 +207,14 @@
     const v=validate(chart,def),round=consistency(chart);
     const displayed=[...document.querySelectorAll('#score .bar')].map(e=>e.dataset.chord);
     const results=Object.fromEntries([...document.querySelectorAll('[data-test]')].map(e=>[e.dataset.test,e.value]));
-    return {test:'Jazz Chart Studio Guided iReal Pro Import',version:APP_VERSION,appVersion:APP_VERSION,generatorSchemaVersion:def.schemaVersion||1,recordedAt:new Date().toISOString(),url:location.href,definitionSource,browser:navigator.userAgent,exportMode:mode,requestedCount:mode==='playlist'?Number($('#playlist-count').value):1,batchValidation:playlistValidation(),batchCharts:batch,results,notes:$('#notes').value,generator:{id:def.id,type:def.generatorType||'random-dominant-sevenths',chords:def.chords||null,key:def.key||null,style:def.style,barsPerLine:def.barsPerLine,defaultStart:def.defaultStart||null,defaultDirection:def.defaultDirection||null,randomPlaylistStarts:isCircle(def)?$('#random-starts').checked:null},generated:chart,validation:{generator:v,screenMatchesModel:displayed.length===chart.measures.length&&displayed.every((ch,i)=>ch===chart.measures[i]),exportRoundTrip:round.pass,exportErrors:round.errors},links:{official:$('#official').href,fourBar:$('#simple').href,full:$('#open-ireal').href,playlist:mode==='playlist'?activeLink():null,genuine:genuine?.url||null,genuineFilename:genuine?.name||null}};
+    return {test:'Jazz Chart Studio Guided iReal Pro Import',version:APP_VERSION,appVersion:APP_VERSION,generatorSchemaVersion:def.schemaVersion||1,recordedAt:new Date().toISOString(),url:location.href,definitionSource,browser:navigator.userAgent,exportMode:mode,requestedCount:mode==='playlist'?Number($('#playlist-count').value):1,batchValidation:playlistValidation(),batchCharts:batch,results,notes:$('#notes').value,generator:{id:def.id,type:def.strategy.type,chords:def.strategy.chords||null,key:def.key||null,style:def.style,barsPerLine:def.barsPerLine,defaultStart:startControl(def)?.default||null,defaultDirection:directionControl(def)?.default||null,randomPlaylistStarts:isCycle(def)?$('#random-starts').checked:null},generated:chart,validation:{generator:v,screenMatchesModel:displayed.length===chart.measures.length&&displayed.every((ch,i)=>ch===chart.measures[i]),exportRoundTrip:round.pass,exportErrors:round.errors},links:{official:$('#official').href,fourBar:$('#simple').href,full:$('#open-ireal').href,playlist:mode==='playlist'?activeLink():null,genuine:genuine?.url||null,genuineFilename:genuine?.name||null}};
   }
   function resultsJson(){if(!chart)return '';let raw=JSON.stringify(resultsObject(),null,2);$('#result-json').value=raw;return raw;}
   function download(name,text,mime){const blob=new Blob([text],{type:mime});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),15000);}
   function save(){try{const all=JSON.parse(localStorage.getItem(storageKey)||'{}');all[batchKey()]={mode,batch};localStorage.setItem(storageKey,JSON.stringify(all));}catch(e){status('Browser storage unavailable; use result download instead.');}}
   function refreshControls(){
     const playlist=mode==='playlist';$('#playlist-count-label').hidden=!playlist;
-    $('#circle-options').hidden=!isCircle(def);$('#random-start-label').hidden=!(isCircle(def)&&playlist);$('#starting-key').disabled=isCircle(def)&&playlist&&$('#random-starts').checked;
+    $('#circle-options').hidden=!isCycle(def);$('#random-start-label').hidden=!(isCycle(def)&&playlist&&!!randomControl(def));if(isCycle(def)){const sc=startControl(def),dc=directionControl(def);$('#starting-key').parentElement.firstChild.textContent=sc.label+' ';$('#circle-direction').parentElement.firstChild.textContent=dc.label+' ';$('#random-start-label').lastChild.textContent=' '+(randomControl(def)?.label||'Random starting root');}$('#starting-key').disabled=isCycle(def)&&playlist&&$('#random-starts').checked;
     $('#generate').textContent=playlist?'Generate Playlist':'Generate Chart';
     $('#open-ireal').textContent=playlist?'Open Playlist in iReal Pro':'Open Chart in iReal Pro';
     $('#download-ireal').textContent=playlist?'Export Playlist HTML':'Export Chart HTML';
@@ -211,12 +226,12 @@
   }
   function fresh(){
     const count=mode==='playlist'?Number($('#playlist-count').value):1;
-    if(!Number.isSafeInteger(count)||count<1||count>50||(mode==='playlist'&&count<2)){
+    if(!Number.isSafeInteger(count)||count<1||(mode==='playlist'&&(count<def.playlist.minCharts||count>def.playlist.maxCharts))){
       status('Select a valid playlist size between 2 and 50.');return;
     }
     const next=[];for(let i=0;i<count;i++){
-      const opts=isCircle(def)?{...def,_start:mode==='playlist'&&$('#random-starts').checked?randomStart():circleStart(),_direction:circleDirection()}:def;
-      const c=build(opts);c.title=mode==='playlist'?`${isCircle(def)?def.name:def.name.replace(/Sevenths/i,'Chords')} ${i+1}`:def.title;next.push(c);
+      const opts=isCycle(def)?{...def,_start:mode==='playlist'&&$('#random-starts').checked?randomStart(def):circleStart(),_direction:circleDirection()}:def;
+      const c=build(opts);c.title=mode==='playlist'?`${isCycle(def)?def.name:def.name.replace(/Sevenths/i,'Chords')} ${i+1}`:def.title;next.push(c);
     }
     batch=next;chart=batch[0];save();refreshControls();render();status(`${count} chart${count===1?'':'s'} generated, validated, and saved locally.`);
   }
