@@ -373,7 +373,11 @@
       chart = batch[0];
     } else {
       mode = "chart";
-      batch = [build(def)];
+      batch = [def.strategy?.type === "mistakes" && !mistakeChords.length
+        ? { id: "pending-mistakes", generatorId: def.id, title: def.title,
+            key: def.key, style: def.style, timeSignature: def.timeSignature,
+            barsPerLine: def.barsPerLine, picks: [], measures: [] }
+        : build(def)];
       chart = batch[0];
     }
     $("#export-mode").value = mode;
@@ -569,7 +573,7 @@
     const names = new Set();
     batch.forEach((c, i) => {
       if (
-        c.title !==
+        def.strategy?.type !== "mistakes" && c.title !==
         def.playlist.titleTemplate
           .replace("{name}", def.name)
           .replace("{number}", String(i + 1))
@@ -579,7 +583,7 @@
       names.add(c.title);
       const v = validate(c, def);
       if (!v.pass) errors.push("Chart " + (i + 1) + ": " + v.errors.join("; "));
-      const rt = consistency(c);
+      const rt = c.measures.length ? consistency(c) : { pass: false, errors: ["No mistakes loaded"] };
       if (!rt.pass)
         errors.push("Round-trip " + (i + 1) + ": " + rt.errors.join("; "));
     });
@@ -705,8 +709,9 @@
       }
       score.appendChild(line);
     }
-    const v = validate(c, def),
-      round = consistency(c);
+    const pendingMistakes = def.strategy?.type === "mistakes" && !c.measures.length;
+    const v = pendingMistakes ? { pass: false, errors: ["Select a mistakes JSON file"] } : validate(c, def),
+      round = pendingMistakes ? { pass: false, errors: ["No drill generated yet"] } : consistency(c);
     const rendered = [...score.querySelectorAll(".bar")].map(
       (e) => e.dataset.chord,
     );
@@ -735,7 +740,7 @@
       checks.appendChild(e);
     }
     $("#preview-title").textContent = c.title;
-    $("#open-ireal").href = activeLink();
+    $("#open-ireal").href = pendingMistakes ? "#" : activeLink();
     const pv = playlistValidation();
     const line = document.createElement("div");
     line.className = pv.pass ? "pass" : "fail";
@@ -838,7 +843,7 @@
     $("#playlist-count-label").hidden = !playlist;
     $("#circle-options").hidden = !isCycle(def);
     $("#mistake-options").hidden = def.strategy?.type !== "mistakes";
-    if (def.strategy?.type === "mistakes") $("#export-mode").value = "chart";
+    if (def.strategy?.type === "mistakes") { mode = "chart"; $("#export-mode").value = "chart"; }
     $("#export-mode").disabled = def.strategy?.type === "mistakes";
     $("#random-start-label").hidden = !(
       isCycle(def) &&
