@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "random-dominant-sevenths",
+  "name": "Random Dominant Sevenths",
+  "title": "Random Dominant Sevenths \u2014 32 Bars",
+  "key": "C",
+  "style": "Medium Swing",
+  "timeSignature": "4/4",
+  "bars": 32,
+  "barsPerLine": 4,
+  "barsPerSelection": 2,
+  "chords": [
+    "A7",
+    "D7",
+    "G7",
+    "C7",
+    "F7",
+    "Bb7",
+    "Eb7",
+    "Ab7",
+    "C#7",
+    "F#7",
+    "B7",
+    "E7",
+    "Db7"
+  ],
+  "repeatDistinctChordCount": 3,
+  "maxSelectionsPerChord": 2,
+  "requireAllChords": true,
+  "forbidAdjacentSelectionsOfSameChord": true
+}
