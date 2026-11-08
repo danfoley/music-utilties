@@ -58,7 +58,7 @@
       "mistake-drills",
       "mixed-seventh-chords",
     ]);
-  const { PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence } = window.JazzChartCore;
+  const { PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence, readableQuality, readableChord } = window.JazzChartCore;
   const mistakeStorageKey = "jcs-mistake-drill-chords";
   let mistakeChords = [];
   const mixedStorageKey = "jcs-mixed-seventh-options";
@@ -575,7 +575,7 @@
     );
   }
   function displayMeasure(c, i) {
-    return isSameLineRepeat(c, i) ? "%" : c.measures[i];
+    return isSameLineRepeat(c, i) ? "%" : readableChord(c.measures[i]);
   }
   function makeRecord(c) {
     // iReal Pro published irealbook protocol uses a 16-cell staff. Each measure here is four cells:
@@ -722,7 +722,7 @@
         ? "Starting root: " + c.startKey
         : def.strategy?.type === "mistakes" ? "Mistake practice" : c.key + " major key signature",
       ...(isCycle(def) ? ["Circle of " + c.direction] : []),
-      ...(def.strategy?.type === "mixed-qualities" ? ["Root movement: " + c.direction, "Qualities: " + c.selectedQualities.join(", ")] : []),
+      ...(def.strategy?.type === "mixed-qualities" ? ["Root movement: " + c.direction, "Qualities: " + c.selectedQualities.map(readableQuality).join(", ")] : []),
       c.style,
       c.timeSignature,
       c.measures.length + " measures",
@@ -948,7 +948,7 @@
       checkbox.value = value;
       checkbox.checked = qualities.includes(value);
       checkbox.onchange = saveMixedOptions;
-      label.append(checkbox, document.createTextNode(quality.label || value));
+      label.append(checkbox, document.createTextNode(readableQuality(value)));
       group.appendChild(label);
     }
     for (const [id, options, selected] of [
