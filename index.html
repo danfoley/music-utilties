@@ -1,2 +1,68 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Music Utilities</title><style>body{font:16px system-ui;background:#f6f8fb;color:#192536;margin:0}main{max-width:850px;margin:7vh auto;padding:24px}h1{font-size:2.4rem}section{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}a.card{display:block;background:white;padding:26px;border-radius:18px;text-decoration:none;color:inherit;border:1px solid #dce3eb;box-shadow:0 3px 12px #1523380a}a.card:hover{border-color:#2467c8}h2{color:#165fbb}p{line-height:1.5}.note{color:#5a6473}</style></head><body><main><h1>♫ Music Utilities</h1><p>Choose an application to launch.</p><section><a class="card" href="./jazz-chart-studio/index.html"><h2>Jazz Chart Studio</h2><p>Generate practice charts and export to iReal Pro.</p></a><a class="card" href="./spotify-setlist-builder/index.html"><h2>Spotify Setlist Builder</h2><p>Manage songs and setlists with Spotify.</p></a></section><p class="note">Music Utilities · Jazz Chart Studio and Spotify Setlist Builder.</p></main></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#112c3b">
+<title>Music Utilities · Home</title>
+<style>
+:root{font-family:"Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;color:#213044;background:#eef1f4}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,#e7edf2 0,#eef1f4 280px);font-size:15px;line-height:1.55}
+/* Shared Music Utilities navigation: restrained, responsive workspace tabs */
+.mu-nav{position:relative;z-index:100;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:12px clamp(16px,3vw,36px);background:#112c3b;color:#f5fafb;border-bottom:1px solid #345362;font:600 14px/1.35 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif}
+.mu-brand{display:inline-flex;align-items:center;gap:10px;color:#f5fafb!important;text-decoration:none;font-weight:750;letter-spacing:-.02em;white-space:nowrap}
+.mu-brand-mark{display:grid;place-items:center;width:34px;height:34px;border-radius:10px;background:#d4ece6;color:#164c53;font-size:19px}
+.mu-brand:hover{color:#bfe6df!important}
+.mu-links{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.mu-link{display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:8px 14px;border:1px solid transparent;border-radius:9px;color:#c8d8de!important;text-decoration:none;font-weight:650;white-space:nowrap;transition:background .15s ease,color .15s ease,border-color .15s ease}
+.mu-link:hover{background:#254757;color:#fff!important}
+.mu-link[aria-current="page"]{background:#e5f2ef;color:#173d45!important;border-color:#e5f2ef}
+.mu-link:focus-visible,.mu-brand:focus-visible{outline:3px solid #f4bc6a;outline-offset:3px}
+@media(max-width:600px){.mu-nav{gap:10px;padding:12px 14px}.mu-links{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.mu-link{font-size:12px;padding:8px 5px;text-align:center;white-space:normal}.mu-brand{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.mu-link{transition:none}}
+.wrap{max-width:1180px;margin:0 auto;padding:54px 26px 64px}
+.eyebrow{font-size:13px;font-weight:750;letter-spacing:.02em;color:#326d78;margin:0 0 8px}
+h1{font-family:Georgia,"Iowan Old Style",serif;font-size:clamp(2.7rem,5vw,4.2rem);font-weight:700;letter-spacing:-.055em;line-height:1.08;color:#142f40;margin:0 0 16px}
+.period{color:#2b8c89}
+.lede{color:#597083;max-width:610px;font-size:1.08rem;margin:0}
+.section-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:44px 0 18px}
+.section-heading h2{font-size:1.08rem;letter-spacing:-.02em;margin:0;color:#1b3544}
+.section-heading p{margin:0;color:#637787;font-size:.86rem}
+.apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.app-card{display:flex;flex-direction:column;gap:0;padding:28px;background:#fff;border:1px solid #d9e3e9;border-radius:17px;color:inherit;text-decoration:none;box-shadow:0 10px 28px #17384c0a;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.app-card:hover{transform:translateY(-3px);border-color:#8bbdbb;box-shadow:0 16px 36px #17384c16}
+.app-card:focus-visible{outline:3px solid #e5a960;outline-offset:3px}
+.card-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:25px}
+.app-icon{width:46px;height:46px;border-radius:12px;background:#e5f2ef;color:#176e70;display:grid;place-items:center;font-size:24px;font-weight:700}
+.version{font-size:12px;font-weight:750;color:#426876;background:#edf4f5;border:1px solid #dbe9eb;border-radius:20px;padding:5px 10px}
+.app-card h3{font-size:1.45rem;letter-spacing:-.035em;color:#163749;margin:0 0 9px}
+.app-card p{color:#617586;line-height:1.65;margin:0 0 26px;max-width:42ch}
+.open{margin-top:auto;display:inline-flex;align-items:center;gap:9px;font-size:.91rem;font-weight:750;color:#176e70}
+.open-arrow{font-size:1.2rem;transition:transform .18s ease}
+.app-card:hover .open-arrow{transform:translateX(4px)}
+footer{margin-top:42px;padding-top:18px;border-top:1px solid #d6e0e6;color:#667987;font-size:13px}
+@media(max-width:700px){.wrap{padding:34px 16px 44px}.apps{grid-template-columns:1fr}.app-card{padding:23px}.section-heading{align-items:start;flex-direction:column;gap:4px}}
+@media(prefers-reduced-motion:reduce){.app-card,.open-arrow{transition:none}.app-card:hover{transform:none}}
+</style>
+</head>
+<body>
+<nav class="mu-nav" aria-label="Music Utilities">
+<a class="mu-brand" href="./index.html"><span class="mu-brand-mark" aria-hidden="true">♫</span><span>Music Utilities</span></a>
+<div class="mu-links">
+<a class="mu-link" href="./index.html" aria-current="page">Home</a>
+<a class="mu-link" href="./jazz-chart-studio/index.html">Chart Studio</a>
+<a class="mu-link" href="./spotify-setlist-builder/index.html">Setlist Builder</a>
+</div>
+</nav>
+<main class="wrap">
+<header><p class="eyebrow">YOUR MUSIC WORKSPACE</p><h1>Music Utilities<span class="period">.</span></h1><p class="lede">Practical tools for chart creation, practice, and setlist building. Choose an application to get started.</p></header>
+<div class="section-heading"><h2>Applications</h2><p>Two tools · One workspace</p></div>
+<section class="apps" aria-label="Available applications">
+<a class="app-card" href="./jazz-chart-studio/index.html"><div class="card-top"><span class="app-icon" aria-hidden="true">♬</span><span class="version">v0.6.3</span></div><h3>Jazz Chart Studio</h3><p>Build custom chord studies, preview practice charts, and export them to iReal Pro.</p><span class="open">Open Chart Studio <span class="open-arrow" aria-hidden="true">→</span></span></a>
+<a class="app-card" href="./spotify-setlist-builder/index.html"><div class="card-top"><span class="app-icon" aria-hidden="true">≡</span><span class="version">v0.1</span></div><h3>Spotify Setlist Builder</h3><p>Organize your setlists, find matching recordings, and connect your songs with Spotify.</p><span class="open">Open Setlist Builder <span class="open-arrow" aria-hidden="true">→</span></span></a>
+</section>
+<footer>Music Utilities · Built for Mac and iPad</footer>
+</main>
+</body>
+</html>
