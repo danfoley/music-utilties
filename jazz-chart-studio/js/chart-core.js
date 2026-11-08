@@ -70,6 +70,24 @@ window.JazzChartCore = (() => {
     if (!chords.length) throw Error("No usable chord symbols in mistakes JSON");
     return chords;
   }
+  // iReal uses compact chord-quality codes. Keep those codes in exported
+  // records, but show conventional jazz chord symbols in the interface.
+  const QUALITY_LABELS = Object.freeze({
+    "7": "7", "^7": "maj7", "-7": "m7", h7: "ø7", o7: "°7",
+    "7#9": "7♯9", "7#11": "7♯11", "7b9": "7♭9",
+    "7b5": "7♭5", "7b9#9": "7♭9♯9", "7#5": "7♯5",
+    "7sus": "7sus",
+  });
+  function readableQuality(quality) {
+    return QUALITY_LABELS[quality] || quality;
+  }
+  function readableChord(chord) {
+    if (typeof chord !== "string") return chord;
+    const match = /^([A-G](?:#|b)?)(.*)$/.exec(chord);
+    if (!match) return chord;
+    return match[1] + readableQuality(match[2]);
+  }
+
   // Distribute selected qualities as evenly as possible over the chart.
   // All 16 two-bar slots are used; roots and qualities are independent.
   function mixedSequence(definition, selectedQualities, rootMode, startingRoot) {
@@ -99,5 +117,5 @@ window.JazzChartCore = (() => {
     return roots.map((root, i) => root + balanced[i]);
   }
 
-  return Object.freeze({ PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence });
+  return Object.freeze({ PITCH, shuffle, cycleSequence, parseMistakeChords, mixedSequence, readableQuality, readableChord });
 })();
