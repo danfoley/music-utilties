@@ -68,7 +68,13 @@
     if(saved&&['chart','playlist'].includes(saved.mode)&&Array.isArray(saved.batch)&&saved.batch.length&&saved.batch.every(c=>validate(c,def).pass)){mode=saved.mode;batch=saved.batch;chart=batch[0];}
     else{mode='chart';batch=[build(def)];chart=batch[0];}
     $('#export-mode').value=mode;$('#playlist-count').value=mode==='playlist'?String(batch.length):'12';
-    $('#starting-key').value=isCycle(def)?startControl(def).default:'Eb';$('#circle-direction').value=isCycle(def)?directionControl(def).default:'fourths';if(isCycle(def)){$('#random-starts').checked=randomControl(def)?.default!==false;}refreshControls();render();
+    if(isCycle(def)){
+      for(const [id,control] of [['starting-key',startControl(def)],['circle-direction',directionControl(def)]]){
+        const select=$('#'+id);select.replaceChildren();
+        for(const choice of control.options){const opt=document.createElement('option');opt.value=optionValue(choice);opt.textContent=typeof choice==='string'?choice:(choice.label||choice.value);select.appendChild(opt);}
+        select.value=control.default;
+      }
+    }else{$('#starting-key').value='Eb';$('#circle-direction').value='fourths';}if(isCycle(def)){$('#random-starts').checked=randomControl(def)?.default!==false;}refreshControls();render();
   }
 
   function shuffle(xs){const a=[...xs];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
