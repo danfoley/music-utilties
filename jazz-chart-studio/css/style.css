@@ -199,3 +199,10 @@ footer.muted{text-align:center;margin:32px 0 0;font-size:.82rem}
 .generator-schema-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 14px;background:var(--mu-surface,#f5f8fa);font-size:13px}
 .generator-schema-heading button{font-size:12px;padding:7px 11px}
 #generator-schema-text{max-height:360px;overflow:auto;white-space:pre;tab-size:2;margin:0;padding:16px;background:var(--mu-surface,#fff);color:var(--mu-ink,#193b4c);font:12px/1.55 ui-monospace,SFMono-Regular,Consolas,monospace}
+
+/* Built-in mistake-drill importer */
+#mistake-options[hidden]{display:none!important}
+.mistake-options{margin:18px 0;padding:18px 20px;border:1px solid var(--line,#d7e1e6);border-radius:12px;background:var(--surface,#f7fafb)}
+.mistake-options h3{margin:0 0 8px;font-size:1.1rem}
+.mistake-options p{margin:8px 0 12px}
+#mistake-file-status{font-size:.9rem;overflow-wrap:anywhere}
