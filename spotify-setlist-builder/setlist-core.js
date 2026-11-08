@@ -59,5 +59,19 @@ window.SpotifySetlistCore = (() => {
           );
         }
 
-  return Object.freeze({ parse, rank });
+  function matchPlaylistTracks(tracks, songTitle) {
+    const title = String(songTitle || "").trim().toLocaleLowerCase();
+    if (!title) return [];
+    return tracks.filter((track) => {
+      const name = String(track.name || "").trim().toLocaleLowerCase();
+      return name && (name.includes(title) || title.includes(name));
+    });
+  }
+  function orderRecordings(tracks, query) {
+    return [...tracks].sort((a, b) =>
+      Number(Boolean(b.priorityPlaylists?.length)) - Number(Boolean(a.priorityPlaylists?.length)) ||
+      rank(b, query) - rank(a, query)
+    );
+  }
+  return Object.freeze({ parse, rank, matchPlaylistTracks, orderRecordings });
 })();
