@@ -33,7 +33,7 @@ for (const mode of ["fourths", "random"]) {
   assert.equal(picks.length, 16);
   assert.ok(picks.every((chord) => selectedQualities.some((quality) => chord.endsWith(quality))));
   const counts = selectedQualities.map((quality) =>
-    picks.filter((chord) => chord.endsWith(quality)).length);
+    picks.filter((chord) => mixedDefinition.strategy.roots.some((root) => chord === root + quality)).length);
   assert.ok(Math.max(...counts) - Math.min(...counts) <= 1);
   assert.ok(picks[0].startsWith("Eb"));
   if (mode === "fourths") {
