@@ -26,6 +26,24 @@ const mistakes = jazz.parseMistakeChords({ mistakes: ["C7", { chord: "Eb7" }, { 
 assert.equal(mistakes.join(","), "C7,Eb7,G7,C7");
 assert.equal(mistakes.length * 2, 8);
 assert.throws(() => jazz.parseMistakeChords({ mistakes: [] }));
+const mixedDefinition = JSON.parse(fs.readFileSync("jazz-chart-studio/generators/mixed-seventh-chords.json", "utf8"));
+const selectedQualities = ["7", "^7", "-7", "7#9", "7b9#9"];
+for (const mode of ["fourths", "random"]) {
+  const picks = jazz.mixedSequence(mixedDefinition, selectedQualities, mode, "Eb");
+  assert.equal(picks.length, 16);
+  assert.ok(picks.every((chord) => selectedQualities.some((quality) => chord.endsWith(quality))));
+  const counts = selectedQualities.map((quality) =>
+    picks.filter((chord) => chord.endsWith(quality)).length);
+  assert.ok(Math.max(...counts) - Math.min(...counts) <= 1);
+  assert.ok(picks[0].startsWith("Eb"));
+  if (mode === "fourths") {
+    const roots = picks.map((chord) =>
+      selectedQualities.map((quality) => chord.endsWith(quality) ? chord.slice(0, -quality.length) : null).find(Boolean));
+    for (let i = 1; i < roots.length; i++)
+      assert.equal(jazz.PITCH[roots[i]], (jazz.PITCH[roots[i-1]] + 5) % 12);
+  }
+}
+assert.throws(() => jazz.mixedSequence(mixedDefinition, [], "fourths", "Eb"));
 const spotify = load("spotify-setlist-builder/setlist-core.js", "SpotifySetlistCore");
 const parsed = spotify.parse("Set 1\n1. Fly Me to the Moon\n2. Misty\nExtras\n3. Encore");
 assert.equal(parsed.main, 2);
