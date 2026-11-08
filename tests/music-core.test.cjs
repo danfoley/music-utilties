@@ -26,6 +26,14 @@ const mistakes = jazz.parseMistakeChords({ mistakes: ["C7", { chord: "Eb7" }, { 
 assert.equal(mistakes.join(","), "C7,Eb7,G7,C7");
 assert.equal(mistakes.length * 2, 8);
 assert.throws(() => jazz.parseMistakeChords({ mistakes: [] }));
+assert.equal(jazz.readableChord("Abh7"), "Abø7");
+assert.equal(jazz.readableChord("Abo7"), "Ab°7");
+assert.equal(jazz.readableChord("Ab^7"), "Abmaj7");
+assert.equal(jazz.readableChord("Ab-7"), "Abm7");
+assert.equal(jazz.readableChord("Ab7b9#9"), "Ab7♭9♯9");
+assert.equal(jazz.readableChord("Ab7#11"), "Ab7♯11");
+assert.equal(jazz.readableChord("Ab7"), "Ab7");
+assert.equal(jazz.readableQuality("h7"), "ø7");
 const mixedDefinition = JSON.parse(fs.readFileSync("jazz-chart-studio/generators/mixed-seventh-chords.json", "utf8"));
 const selectedQualities = ["7", "^7", "-7", "7#9", "7b9#9"];
 for (const mode of ["fourths", "random"]) {
