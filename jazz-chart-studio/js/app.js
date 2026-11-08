@@ -287,74 +287,81 @@
       status("Could not save generator registry: " + e.message);
     }
   }
+  function createGeneratorLibraryRow(generator) {
+    const row = document.createElement("div");
+    row.className = "generator-library-row";
+    if (generator.id === def.id) row.classList.add("is-active");
+
+    const information = document.createElement("div");
+    information.className = "generator-library-info";
+
+    const name = document.createElement("div");
+    name.className = "generator-library-name";
+    name.textContent = generator.name;
+
+    const details = document.createElement("div");
+    details.className = "generator-library-detail";
+    const strategyName = generator.strategy?.type === "cycle" ? "Cycle" : "Shuffle";
+    details.textContent = `${generator.bars} bars · ${strategyName} · JSON v${generator.schemaVersion}`;
+
+    const badge = document.createElement("span");
+    badge.className = "generator-library-badge";
+    badge.textContent = builtinIds.has(generator.id) ? "Built-in" : "Imported";
+    information.append(name, details, badge);
+
+    const actions = document.createElement("div");
+    actions.className = "generator-library-actions";
+    actions.appendChild(createGeneratorAction("Download JSON", () => downloadGenerator(generator)));
+
+    if (!builtinIds.has(generator.id)) {
+      const removeButton = createGeneratorAction("Delete", () => removeImportedGenerator(generator));
+      removeButton.className = "generator-remove";
+      actions.appendChild(removeButton);
+    }
+
+    row.append(information, actions);
+    return row;
+  }
+
+  function createGeneratorAction(label, onClick) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.textContent = label;
+    button.onclick = onClick;
+    return button;
+  }
+
+  function removeImportedGenerator(generator) {
+    if (!confirm(`Delete generator ${generator.name}? Saved chart batches will not be erased.`)) return;
+
+    delete registry[generator.id];
+    if (def.id === generator.id) {
+      def = registry["random-dominant-sevenths"];
+      definitionSource = "built-in";
+      loadBatchOrFresh();
+    }
+    registrySave();
+    registryUI();
+    status("Generator deleted.");
+  }
+
   function registryUI() {
     const select = $("#generator-select");
-    select.replaceChildren();
     const list = $("#generator-list");
+    select.replaceChildren();
     list.replaceChildren();
-    const definitions = Object.values(registry);
-    $("#generator-count").textContent = definitions.length + " installed";
-    definitions.forEach((d) => {
+
+    const generators = Object.values(registry);
+    $("#generator-count").textContent = `${generators.length} installed`;
+
+    for (const generator of generators) {
       const option = document.createElement("option");
-      option.value = d.id;
-      option.textContent = d.name;
+      option.value = generator.id;
+      option.textContent = generator.name;
       select.appendChild(option);
-      const row = document.createElement("div");
-      row.className =
-        "generator-library-row" + (d.id === def.id ? " is-active" : "");
-      const info = document.createElement("div");
-      info.className = "generator-library-info";
-      const title = document.createElement("div");
-      title.className = "generator-library-name";
-      title.textContent = d.name;
-      const detail = document.createElement("div");
-      detail.className = "generator-library-detail";
-      detail.textContent =
-        d.bars +
-        " bars · " +
-        (d.strategy?.type === "cycle" ? "Cycle" : "Shuffle") +
-        " · JSON v" +
-        d.schemaVersion;
-      const badge = document.createElement("span");
-      badge.className = "generator-library-badge";
-      badge.textContent = builtinIds.has(d.id) ? "Built-in" : "Imported";
-      info.append(title, detail, badge);
-      const actions = document.createElement("div");
-      actions.className = "generator-library-actions";
-      const download = document.createElement("button");
-      download.type = "button";
-      download.textContent = "Download JSON";
-      download.onclick = () => downloadGenerator(d);
-      actions.appendChild(download);
-      if (!builtinIds.has(d.id)) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "generator-remove";
-        remove.textContent = "Delete";
-        remove.onclick = () => {
-          if (
-            !confirm(
-              "Delete generator " +
-                d.name +
-                "? Saved chart batches will not be erased.",
-            )
-          )
-            return;
-          delete registry[d.id];
-          if (def.id === d.id) {
-            def = registry["random-dominant-sevenths"];
-            definitionSource = "built-in";
-            loadBatchOrFresh();
-          }
-          registrySave();
-          registryUI();
-          status("Generator deleted.");
-        };
-        actions.appendChild(remove);
-      }
-      row.append(info, actions);
-      list.appendChild(row);
-    });
+      list.appendChild(createGeneratorLibraryRow(generator));
+    }
+
     select.value = def.id;
     $("#generator-heading").textContent = def.name;
   }
