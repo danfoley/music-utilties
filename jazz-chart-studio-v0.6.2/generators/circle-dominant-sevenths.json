@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "circle-dominant-sevenths",
+  "generatorType": "circle-dominant-sevenths",
+  "name": "Circle Dominant Sevenths",
+  "title": "Circle Dominant Sevenths \u2014 24 Bars",
+  "key": "Eb",
+  "defaultStart": "Eb",
+  "defaultDirection": "fourths",
+  "style": "Medium Swing",
+  "timeSignature": "4/4",
+  "bars": 24,
+  "barsPerLine": 4,
+  "barsPerSelection": 2
+}
