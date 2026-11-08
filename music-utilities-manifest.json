@@ -8,9 +8,9 @@
   "apps": [
     {
       "name": "Jazz Chart Studio",
-      "version": "0.6.2",
-      "path": "jazz-chart-studio-v0.6.2/index.html",
-      "source_archive": "jazz-chart-studio-v0.6.2-repeat-symbols.zip"
+      "version": "0.6.3",
+      "path": "jazz-chart-studio-v0.6.3/index.html",
+      "source_archive": "jazz-chart-studio-v0.6.3-repeat-symbols.zip"
     },
     {
       "name": "Spotify Setlist Builder",
