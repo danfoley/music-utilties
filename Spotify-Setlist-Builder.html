@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setlist → Spotify</title>
+<style>
+
+:root{
+  --bg:#eaf0f3;--surface:#fff;--panel:#f5f8f9;--line:#dce4e8;
+  --text:#182d40;--sub:#667b8b;--green:#217d80;--red:#a94450;--gold:#c18a3c;
+  --nav:#123147;--navsoft:#1b4359;--shadow:0 16px 55px rgba(27,55,74,.075)
+}
+*{box-sizing:border-box}
+html{min-height:100%;scroll-behavior:smooth}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:15px/1.55 "Avenir Next",Avenir,"Segoe UI",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.3;background-image:radial-gradient(#bacbd4 0.55px,transparent .55px);background-size:15px 15px;z-index:-1}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.45;cursor:not-allowed}
+a{color:#176f79;text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+:focus-visible{outline:3px solid #e5a960!important;outline-offset:3px}
+.shell{max-width:1340px;margin:0 auto;padding:36px 30px 55px}
+.head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:29px}
+.brand{display:flex;gap:16px;align-items:center}
+.logo{width:54px;height:54px;background:var(--nav);border-radius:14px;display:grid;place-items:center;color:#fff;font:38px/1 Georgia,serif;box-shadow:inset 0 -6px 0 #286b75}
+.eyebrow{text-transform:none;letter-spacing:.01em;color:var(--green);font-size:13px;font-weight:750}
+h1{margin:0;color:var(--nav);font-size:29px;line-height:1.13;font-weight:800;letter-spacing:-1.1px}
+h2{margin:0 0 13px;color:var(--nav);font:normal 39px/1.11 Georgia,"Iowan Old Style",serif;letter-spacing:-1.3px}
+h3{margin:0;font-size:16px;font-weight:750}
+p{margin:4px 0 23px;max-width:70ch;color:var(--sub)}
+.grid{display:grid;grid-template-columns:280px minmax(0,1fr);gap:24px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:40px 44px;box-shadow:var(--shadow)}
+main{min-width:0}main>.card{min-height:575px}
+.sidebar{position:sticky;top:22px;background:var(--nav);border-color:var(--nav);color:#edf7fa;padding:31px 25px 26px;border-radius:18px;box-shadow:0 22px 50px rgba(10,34,49,.15)}
+.sidebar>.eyebrow{color:#a1d4d6;font-size:14px}
+.sidebar .steps{display:grid;gap:8px;margin-top:22px}
+.step{display:flex;align-items:center;gap:13px;padding:15px 10px;border-radius:10px;color:#a9c0ce;font-weight:600;line-height:1.25}
+.step .num{width:32px;height:32px;display:grid;place-items:center;flex:none;border:1px solid #4a7184;border-radius:9px;font-size:13px;font-weight:800}
+.step.active{color:#fff;background:#24566a}
+.step.active .num{background:#f6d9a6;color:#183549;border-color:#f6d9a6}
+.sidebar .divider{border-color:#365a70}
+.sidebar .small{color:#b8cad5}
+.sidebar .bar{background:#37576b}
+.sidebar .btn.ghost{border-color:#517084;color:#e4eff3;background:transparent}
+.sidebar p.small{font-size:12px;line-height:1.7}
+.small{font-size:13px;color:var(--sub)}
+.status{display:inline-flex;gap:10px;align-items:center;font-size:13px;background:#fff;border:1px solid #d6e0e4;padding:10px 15px;border-radius:9px;color:#526c7e;font-weight:700;white-space:nowrap}
+.dot{width:9px;height:9px;background:#d4a365;border-radius:50%}
+.status.connected{background:#e3f1ef;color:#1e6667;border-color:#aed4d1}
+.status.connected .dot{background:#217d80}
+.btn{border:1px solid #c9d7df;background:#f5f8fa;color:var(--nav);padding:12px 18px;border-radius:9px;font-weight:750;min-height:44px;transition:background .15s,border-color .15s,transform .15s;white-space:nowrap}
+.btn:hover:not(:disabled){background:#e7f1f2;border-color:#a6c6c9}
+.btn:active:not(:disabled){transform:translateY(1px)}
+.btn.primary{background:var(--green);color:white;border-color:var(--green)}
+.btn.primary:hover:not(:disabled){background:#1a666a;border-color:#1a666a}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--red)}
+.btn.sm{min-height:34px;padding:6px 11px;font-size:12px}
+.btn.link{background:transparent;border:0;color:var(--green);padding:5px}
+.buttons{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.right{margin-left:auto}
+.field{display:grid;gap:9px;margin-bottom:20px}
+.field label{font-size:14px;font-weight:750;color:#334e60}
+input,textarea{width:100%;background:#f9fbfc;color:var(--text);border:1px solid #cbd8e0;border-radius:10px;outline:none;padding:13px 15px;min-height:48px}
+input:focus,textarea:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(33,125,128,.14)}
+textarea{resize:vertical;min-height:265px;line-height:1.85;font-size:15px;background-color:#fbfcfd;background-image:repeating-linear-gradient(transparent 0,transparent 33px,#e7eef2 34px);background-attachment:local}
+input::placeholder,textarea::placeholder{color:#93a3ae}
+.notice{padding:15px 18px;background:#edf5f6;border:1px solid #c6dfe1;border-radius:10px;color:#37616f;margin-bottom:22px;font-size:13px}
+.notice.warning{background:#fff7e9;border-color:#e5d2af;color:#88632b}
+.notice.success{background:#e8f5ef;border-color:#b0dac7;color:#225f50}
+.notice.error{background:#fff0ef;border-color:#edc1c1;color:#a33a48}
+.bar{height:6px;background:#e4ecef;overflow:hidden;border-radius:8px;margin:17px 0 29px}
+.fill{height:100%;width:0;background:var(--green);transition:width .28s}
+.results{display:grid;gap:9px;margin:16px 0 30px}
+.result{display:flex;gap:15px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:13px 15px;cursor:pointer;transition:background .12s,border-color .12s,box-shadow .12s}
+.result:hover{background:#f5f9fa;border-color:#afc5cc}
+.result.selected{border-color:#27888b;background:#edf7f6;box-shadow:inset 4px 0 0 #27888b}
+.result img{width:62px;height:62px;object-fit:cover;flex:none;border-radius:7px}
+.result .info{flex:1;min-width:0}
+.result .title{font-size:15px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#1e3547}
+.result .meta{font-size:12px;color:var(--sub)}
+.result .btn{flex:none}
+.radio{border:2px solid #a0b4be;width:19px;height:19px;border-radius:50%;flex:none}
+.selected .radio{border:6px solid var(--green)}
+.tag{display:inline-block;font-size:11px;background:#dbeee7;border-radius:5px;color:#235d4d;padding:3px 8px;margin-top:6px;font-weight:750}
+.search-row{display:flex;gap:10px}.search-row input{flex:1;min-width:0}
+.subhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
+.divider{border:0;border-top:1px solid var(--line);margin:28px 0}
+.review-row{display:flex;gap:15px;padding:15px 0;align-items:center;border-bottom:1px solid #e4eaee}
+.review-row .index{color:#83a1af;font:24px/1 Georgia,serif;width:36px;flex:none}
+.review-row .main{flex:1;min-width:0}
+.pill{display:inline-block;padding:5px 10px;font-size:12px;color:#466474;background:#edf4f6;border-radius:7px;font-weight:700}
+.listpreview{max-height:350px;overflow:auto;margin:15px 0 20px;border:1px solid #dfE8ec;border-radius:10px;padding:5px 19px;background:#fbfcfd}
+.listpreview .item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid #e8eef1;font-size:14px}
+.listpreview .item:last-child{border:0}
+.muted{color:var(--sub)}.inline{display:flex;gap:10px;align-items:center}.checkbox{width:auto;min-height:auto;accent-color:var(--green)}
+.foot{margin-top:25px;color:#8299a6;font-size:12px;text-align:center}
+.hidden{display:none!important}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.loading{display:inline-block;border:2px solid #bdcbd2;border-top-color:var(--green);border-radius:50%;width:15px;height:15px;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.workspace-intro{display:flex;gap:15px;align-items:center;margin-bottom:25px;padding-bottom:23px;border-bottom:1px solid var(--line)}
+.workspace-mark{width:50px;height:50px;display:grid;place-items:center;border-radius:50%;background:#e7f1f1;color:#217d80;font:28px/1 Georgia,serif;flex:none}
+.workspace-intro strong{display:block;color:#19364a;font-weight:800;font-size:15px}
+.workspace-intro span{font-size:13px;color:var(--sub)}
+#currentSongTitle{font-size:47px;margin:18px 0 8px;overflow-wrap:anywhere}
+#songPosition{font-size:13px}
+#resultsNote{padding:10px 0;color:#617b8a}
+#setupPanel>p,#matchPanel>p,#reviewPanel>p{font-size:15px}
+@media(max-width:930px){.shell{padding:20px 18px 40px}.grid{grid-template-columns:235px minmax(0,1fr);gap:16px}.card{padding:30px}.sidebar{padding:24px 16px}.result{flex-wrap:wrap}.result .btn{margin-left:auto}}
+@media(max-width:720px){.grid{grid-template-columns:1fr}.sidebar{position:static}.sidebar .steps{grid-template-columns:repeat(3,minmax(0,1fr));gap:3px}.sidebar .step{padding:9px 4px;font-size:12px;gap:6px;flex-direction:column;text-align:center}.sidebar .step .num{width:26px;height:26px}.sidebar>.divider,.sidebar>.bar,.sidebar>#sideCount,.sidebar>p{display:none}.sidebar .buttons{margin-top:16px}.shell{padding:18px 12px 36px}.head{align-items:flex-start;gap:10px;margin-bottom:20px}.brand{gap:9px}.logo{height:43px;width:43px;font-size:28px}.head h1{font-size:22px}.head .small{font-size:11px}.status{padding:7px 8px;font-size:11px}.card{padding:23px 18px}main>.card{min-height:0}h2{font-size:34px}#currentSongTitle{font-size:39px}.search-row{flex-wrap:wrap}.search-row input{flex-basis:100%}.search-row .btn{flex:1}.result img{height:50px;width:50px}.result{gap:10px;padding:12px}.result .btn{flex-basis:100%}.two{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+</style></head><body><div class="shell"><header class="head"><div class="brand"><div class="logo">♫</div><div><div class="eyebrow">Your music workspace</div><h1>Spotify Setlist Builder</h1><div class="small">Make a playlist from the recordings you actually want</div></div></div><button id="headerConnectBtn" class="status" title="Open Spotify connection settings"><span class="dot"></span><span>Checking Spotify…</span></button></header><div class="grid"><aside class="card sidebar"><div class="eyebrow">Workflow</div><div class="steps" id="steps"><div class="step active" data-step="0"><span class="num">1</span>Set list</div><div class="step" data-step="1"><span class="num">2</span>Find recordings</div><div class="step" data-step="2"><span class="num">3</span>Review & create</div></div><hr class="divider"><div class="small" id="sideCount">Paste a list to begin</div><div class="bar"><div class="fill" id="sideProgress"></div></div><div class="buttons"><button class="btn sm ghost" id="settingsBtn">Spotify connection</button><button class="btn sm ghost" id="resetBtn">New set list</button></div><p class="small" style="margin-top:16px">Your set list and choices are saved locally in this browser. No account password is stored.</p></aside><main><div class="workspace-intro"><div class="workspace-mark">♬</div><div><strong>Your set, your sound.</strong><span>Build a playlist one recording at a time.</span></div></div><div id="messages"></div><div id="connectPrompt" class="notice warning" style="margin-bottom:18px"><b>Spotify is not connected.</b> Song searches are limited to examples until you connect. <button class="btn primary sm" id="quickConnectBtn" style="margin-left:10px">Connect Spotify →</button></div>
+<section class="card" id="setupPanel"><div class="eyebrow">Step 1 / Add songs</div><h2>Paste your set list</h2><p>Keep your order. Any songs beneath <b>Extras</b> will be moved to the very end.</p><div class="field"><label for="setlistText">Set list</label><textarea id="setlistText" placeholder="Set 1\n1. Fly Me to the Moon\n2. The Look of Love\n\nSet 2\n1. Autumn Leaves\n\nExtras\nMisty"></textarea></div><div class="buttons"><button class="btn ghost" id="sampleBtn">Load example</button><button class="btn primary right" id="parseBtn">Review songs</button></div><div id="parsedPreview" class="hidden"><hr class="divider"><div class="subhead"><h3>Parsed order</h3><span id="parsedCount" class="pill"></span></div><div id="parsedItems" class="listpreview"></div><div class="buttons"><button id="editListBtn" class="btn ghost">Edit text</button><button id="startBtn" class="btn primary right">Choose recordings →</button></div></div></section>
+<section class="card hidden" id="matchPanel"><div class="subhead"><span class="eyebrow" id="songPosition">Song 1 of 1</span><span id="matchSource" class="pill">Spotify search</span></div><div class="bar"><div class="fill" id="matchProgress"></div></div><h2 id="currentSongTitle">Song title</h2><p id="currentSongSubtitle">Choose the exact recording you want.</p><div class="field"><label for="searchTerm">Search Spotify for a recording</label><div class="search-row"><input id="searchTerm" autocomplete="off" placeholder="Song title or artist"><button class="btn primary" id="searchBtn">Search Spotify</button></div></div><div id="resultsNote" class="small">Search results will appear here.</div><div id="results" class="results"></div><div class="field"><label for="manualLink">Or paste an exact Spotify track link</label><div class="search-row"><input id="manualLink" placeholder="https://open.spotify.com/track/..."><button class="btn ghost" id="validateLinkBtn">Use link</button></div></div><hr class="divider"><div class="buttons"><button class="btn ghost" id="backSongBtn">← Back</button><button class="btn ghost" id="skipBtn">Skip song</button><button class="btn primary right" id="nextSongBtn" disabled>Use this recording →</button></div></section>
+<section class="card hidden" id="reviewPanel"><div class="eyebrow">Step 3 / Final check</div><h2>Review your playlist</h2><p>Tracks stay in the original set-list order, including duplicates. Skipped songs will not be added.</p><div id="reviewItems"></div><hr class="divider"><div class="field"><label for="playlistName">New Spotify playlist name</label><input id="playlistName" placeholder="Friday Night Set List"></div><label class="inline" style="font-size:13px;color:var(--sub);margin-bottom:20px"><input type="checkbox" class="checkbox" id="makePublic"> Make playlist public (default is private)</label><div class="buttons"><button class="btn ghost" id="reviewBackBtn">← Back to songs</button><button class="btn ghost" id="exportBtn">Export selections</button><button class="btn primary right" id="createBtn">Create Spotify playlist →</button></div><div id="createdLink" class="hidden notice success" style="margin-top:16px"></div></section>
+<section class="card hidden" id="settingsPanel"><div class="eyebrow">Connection setup</div><h2>Connect your Spotify account</h2><div id="modeNotice" class="notice warning"></div><div class="notice" id="connectionDetail">Checking your connection…</div><div class="buttons"><button class="btn ghost" id="testConnectionBtn">Test Spotify connection</button></div><div class="notice"><b>One-time setup:</b> 1. Open the Spotify Developer Dashboard link below and create an app (if you do not already have one). 2. Copy its Client ID here. 3. Add the exact Redirect URI below to your app settings. 4. Click Connect with Spotify and approve access. <b>Never enter a Client Secret.</b></div><div class="field"><label for="clientId">Spotify Developer App Client ID</label><input id="clientId" autocomplete="off" placeholder="Paste Client ID (not Client Secret)"></div><div class="field"><label>Register this exact Redirect URI in your Spotify app</label><div class="search-row"><input id="redirectUri" readonly><button class="btn ghost" id="copyRedirectBtn">Copy</button></div></div><div class="notice">Create a personal app at <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">Spotify Developer Dashboard</a>. Under app settings, add the redirect URI above. Spotify's development mode generally requires the app owner to have Premium. Use PKCE; <b>do not paste a Client Secret</b>.</div><div class="buttons"><button class="btn ghost" id="cancelSettingsBtn">Back</button><button class="btn ghost" id="logoutBtn">Disconnect</button><button class="btn primary right" id="connectBtn">Connect with Spotify</button></div><div id="susanStatus" class="small" style="margin-top:16px"></div>
+<hr class="divider"><h3>Diagnostics & debug log</h3>
+<p class="small">Logs include timestamps, navigation, Spotify request paths, HTTP status codes and sanitized error details. No passwords, tokens, authorization codes, or Client ID values are recorded.</p>
+<div class="buttons"><button class="btn ghost" id="debugToggle">Enable debug logging</button><button class="btn ghost" id="debugSave">Save log file…</button><button class="btn ghost" id="debugDownload">Download log</button><button class="btn ghost" id="debugClear">Clear log</button></div>
+<div class="small" id="debugStatus" role="status">Debug mode off</div>
+<pre id="debugPreview" style="white-space:pre-wrap;max-height:180px;overflow:auto;background:#eef3f4;padding:12px;border-radius:8px;font-size:11px"></pre>
+</section>
+</main></div><footer class="foot">Spotify Setlist Builder · Music Utilities application · Not affiliated with Spotify</footer></div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id), htmlEsc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const DEBUG_STORE='setlist_debug_enabled_v1';
+let debugOn=localStorage.getItem(DEBUG_STORE)==='true',debugEntries=[],debugHandle=null,debugWrite=Promise.resolve();
+function scrubLog(v){
+ let s=String(v??'');
+ s=s.replace(/(Bearer\s+)[^\s"'<>]+/gi,'$1[REDACTED]')
+ .replace(/((?:access_token|refresh_token|client_secret|code_verifier|code_challenge|client_id|authorization|state|code)=)[^&\s"'<>]+/gi,'$1[REDACTED]')
+ .replace(/("(?:access_token|refresh_token|client_secret|code_verifier|code_challenge|client_id|authorization|state|code)"\s*:\s*")[^"]+/gi,'$1[REDACTED]')
+ .replace(/([?&](?:code|state|client_id|code_challenge)=)[^&\s]+/gi,'$1[REDACTED]');
+ return s.slice(0,1600);
+}
+function logEvent(type,detail=''){
+ if(!debugOn)return;
+ const entry={at:new Date().toISOString(),type:scrubLog(type),detail:scrubLog(detail)};
+ debugEntries.push(entry);if(debugEntries.length>2500)debugEntries.shift();
+ const preview=document.getElementById('debugPreview');
+ if(preview)preview.textContent=debugEntries.slice(-12).map(x=>`${x.at} ${x.type} ${x.detail}`).join('\n');
+ if(debugHandle)queueDebugWrite();
+}
+function debugText(){return '# Spotify Setlist Builder diagnostics\n# Tokens, authorization codes and client IDs intentionally omitted\n'+debugEntries.map(e=>JSON.stringify(e)).join('\n')+'\n'}
+function queueDebugWrite(){
+ debugWrite=debugWrite.then(async()=>{
+  if(!debugHandle)return;
+  const writable=await debugHandle.createWritable();
+  await writable.write(debugText());await writable.close();
+ }).catch(e=>{debugHandle=null;const x=document.getElementById('debugStatus');if(x)x.textContent='Automatic file writing stopped: '+e.message+'. Use Download log.'});
+}
+function refreshDebug(){
+ const t=document.getElementById('debugToggle'),status=document.getElementById('debugStatus');
+ if(t)t.textContent=debugOn?'Disable debug logging':'Enable debug logging';
+ if(status)status.textContent=debugOn?(debugHandle?'Logging enabled — automatically writing to selected file':'Logging enabled — choose Save log file for continuous local writing'):'Debug mode off';
+}
+async function saveDebugFile(){
+ if(!debugOn){debugOn=true;localStorage.setItem(DEBUG_STORE,'true');}
+ if(window.showSaveFilePicker){
+  try{
+   debugHandle=await showSaveFilePicker({suggestedName:'spotify-setlist-debug.log',types:[{description:'Log file',accept:{'text/plain':['.log','.txt']}}]});
+   logEvent('debug','file selected');queueDebugWrite();refreshDebug();return;
+  }catch(e){if(e.name==='AbortError')return;logEvent('debug-file-error',e.message)}
+ }
+ downloadDebug();refreshDebug();
+}
+function downloadDebug(){
+ const blob=new Blob([debugText()],{type:'text/plain'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='spotify-setlist-debug.log';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+window.addEventListener('error',e=>logEvent('javascript-error',`${e.message} at ${e.filename?.split('/').pop()}:${e.lineno}`));
+window.addEventListener('unhandledrejection',e=>logEvent('promise-error',e.reason?.message||String(e.reason)));
+
+const STORE='setlist_studio_v1', TOKEN='setlist_spotify_token_v1', PKCE='setlist_pkce_v1';
+let app={raw:'',songs:[],selected:{},index:0,stage:0,clientId:'',susanTracks:[],susanNames:[],susanLoaded:false,playlistName:''};let token=null,results=[],candidate=null,view='main',busy=false,searchSerial=0;
+const demoTracks=[{id:'4LyyZeh2QR9gbXxpSwo4gG',name:'Fly Me to the Moon — Live',artists:[{name:'Diana Krall'}],album:{name:'A Night in Paris',images:[]},external_urls:{spotify:'https://open.spotify.com/track/4LyyZeh2QR9gbXxpSwo4gG'},uri:'spotify:track:4LyyZeh2QR9gbXxpSwo4gG',demo:true},{id:'6kZfCVfoVJBngpQEdO9Jqm',name:'Fly Me to the Moon — Live',artists:[{name:'Diana Krall'}],album:{name:'The Very Best of Diana Krall',images:[]},external_urls:{spotify:'https://open.spotify.com/track/6kZfCVfoVJBngpQEdO9Jqm'},uri:'spotify:track:6kZfCVfoVJBngpQEdO9Jqm',demo:true},{id:'081AHcLTz6opbo1V9XN8eL',name:'Fly Me to the Moon',artists:[{name:'Frank Sinatra'}],album:{name:'It Might As Well Be Swing',images:[]},external_urls:{spotify:'https://open.spotify.com/track/081AHcLTz6opbo1V9XN8eL'},uri:'spotify:track:081AHcLTz6opbo1V9XN8eL',demo:true},{id:'2wa7SADeTMrvqCloKFbCcp',name:'Fly Me to the Moon',artists:[{name:'Tony Bennett'}],album:{name:'As Time Goes By',images:[]},external_urls:{spotify:'https://open.spotify.com/track/2wa7SADeTMrvqCloKFbCcp'},uri:'spotify:track:2wa7SADeTMrvqCloKFbCcp',demo:true},{id:'7kignDrfUMiXfhxCeaWiSg',name:'The Look of Love',artists:[{name:'Diana Krall'}],album:{name:'The Look of Love',images:[]},external_urls:{spotify:'https://open.spotify.com/track/7kignDrfUMiXfhxCeaWiSg'},uri:'spotify:track:7kignDrfUMiXfhxCeaWiSg',demo:true},{id:'2o0s3NkTsZAHlW0HYcJVeB',name:'Autumn Leaves',artists:[{name:'Bill Evans Trio'}],album:{name:'Portrait in Jazz',images:[]},external_urls:{spotify:'https://open.spotify.com/track/2o0s3NkTsZAHlW0HYcJVeB'},uri:'spotify:track:2o0s3NkTsZAHlW0HYcJVeB',demo:true}];
+function save(){localStorage.setItem(STORE,JSON.stringify({...app,susanTracks:[],susanLoaded:false,susanNames:[]}))}function restore(){try{let o=JSON.parse(localStorage.getItem(STORE)||'null');if(o&&Array.isArray(o.songs))app={...app,...o,susanTracks:[],susanLoaded:false,susanNames:[]};token=JSON.parse(sessionStorage.getItem(TOKEN)||'null')}catch{}}function flash(t,type='warning'){let d=document.createElement('div');d.className='notice '+type;d.textContent=t;$('messages').replaceChildren(d);window.scrollTo({top:0,behavior:'smooth'});if(type==='success')setTimeout(()=>{if(d.isConnected)d.remove()},7000)}function clearFlash(){$('messages').replaceChildren()}
+function parse(raw){let songs=[],extras=[],extra=false,sections=0;for(let line of raw.split(/\r?\n/)){line=line.trim();if(!line||/^[-=*_]{3,}$/.test(line))continue;if(/^\s*(?:extras?|extra songs?|encores?(?:\s*\/\s*extras?)?)\s*[:\-–]?\s*$/i.test(line)){extra=true;continue}if(/^\s*(?:set\s*(?:list\s*)?(?:\d+|one|two|three|four|[ivx]+)|first set|second set)\s*[:\-–]?\s*$/i.test(line)){extra=false;sections++;continue}line=line.replace(/^\s*(?:(?:\d+[.)\-:]|[•●▪*✓☐-])\s*)+/,'').trim();if(!line)continue;(extra?extras:songs).push({title:line,extra});}return {songs:[...songs,...extras],main:songs.length,extras:extras.length,sections}}
+const trackArtist=t=>(t.artists||[]).map(x=>x.name).join(', '),trackUrl=t=>t.external_urls?.spotify||'https://open.spotify.com/track/'+encodeURIComponent(t.id),trackUri=t=>t.uri||'spotify:track:'+t.id;
+function rank(t,needle){let n=needle.toLowerCase().trim(),title=(t.name||'').toLowerCase(),artist=trackArtist(t).toLowerCase(),tokens=n.split(/\s+/).filter(x=>x.length>2);let match=tokens.filter(x=>title.includes(x)||artist.includes(x)).length;let susan=Array.isArray(t.susanNames)&&t.susanNames.length>0;return match*12+(title===n?60:0)+(title.includes(n)?30:0)+(susan?20:0)-(title.includes('karaoke')?22:0)}
+function showStage(stage){logEvent('navigation',`stage=${stage} songIndex=${app.index}`);app.stage=stage;save();view='main';['setupPanel','matchPanel','reviewPanel','settingsPanel'].forEach((id,i)=>$(id).classList.toggle('hidden',i!==stage));document.querySelectorAll('.step').forEach(el=>el.classList.toggle('active',+el.dataset.step===stage));$('sideCount').textContent=app.songs.length?`${Object.values(app.selected).filter(x=>x&&x!=='skip').length} selected of ${app.songs.length} songs`:'Paste a list to begin';$('sideProgress').style.width=(app.songs.length?100*Object.keys(app.selected).length/app.songs.length:0)+'%';if(stage===1)renderSong();if(stage===2)renderReview()}
+function showSettings(){logEvent('navigation','settings');view='settings';['setupPanel','matchPanel','reviewPanel'].forEach(id=>$(id).classList.add('hidden'));$('settingsPanel').classList.remove('hidden');$('clientId').value=app.clientId;$('redirectUri').value=redirectUri();$('modeNotice').textContent=isLocalServer()?'This page is running from an HTTPS website or a supported local server. Register the exact redirect URI below, then connect.':'You opened the HTML file directly. All offline features work, but Spotify sign-in requires HTTPS hosting or the included Mac launcher (http://127.0.0.1).';$('susanStatus').textContent=app.susanLoaded?`${app.susanNames.length} Susan playlists indexed; ${app.susanTracks.length} tracks`:'Susan playlists will be indexed when connected.'}
+function isLocalServer(){return location.protocol==='https:'||(location.protocol==='http:'&&['127.0.0.1','[::1]'].includes(location.hostname))}function redirectUri(){return isLocalServer()?location.origin+location.pathname:'http://127.0.0.1:8765/Spotify-Setlist-Builder.html'}
+function setBadge(){
+ const c=!!token?.access_token;
+ $('headerConnectBtn').className='status'+(c?' connected':'');
+ $('headerConnectBtn').lastElementChild.textContent=c?'Spotify connected · Test':'Spotify disconnected · Connect';
+ $('connectPrompt').classList.toggle('hidden',c);
+ $('connectionDetail').textContent=c?'Spotify authorization saved. Click Test Spotify connection to verify account access.':'Not connected. Follow the setup instructions below, then test the connection.';
+}
+async function testConnection(){logEvent('connection-test','started');
+ $('connectionDetail').textContent='Checking Spotify account access…';
+ if(!token){setBadge();flash('Not connected. Enter your Client ID and choose Connect with Spotify.','warning');return}
+ try{
+  const me=await api('/me');
+  $('connectionDetail').textContent='Connected as '+(me.display_name||me.id)+' ('+me.id+'). Spotify API verified.';
+  setBadge();
+  $('connectionDetail').textContent='✓ Spotify API verified. Signed in as '+(me.display_name||me.id)+'.';
+  logEvent('connection-test','passed');flash('Spotify connection verified.','success');
+ }catch(e){
+  $('connectionDetail').textContent='Connection test failed: '+e.message;
+  logEvent('connection-test','failed: '+e.message);flash('Spotify connection test failed: '+e.message,'error');
+ }
+}
+function renderPreview(){let p=parse($('setlistText').value);$('parsedPreview').classList.remove('hidden');$('parsedCount').textContent=`${p.main} main · ${p.extras} extras`;$('parsedItems').innerHTML=p.songs.map((s,i)=>`<div class="item"><span class="muted">${i+1}.</span><span>${htmlEsc(s.title)}</span>${s.extra?'<span class="pill">Extra</span>':''}</div>`).join('')||'<p>No songs found</p>';$('startBtn').disabled=!p.songs.length;return p}
+function current(){return app.songs[app.index]}
+function renderSong(){searchSerial++;busy=false;$('searchBtn').disabled=false;$('searchBtn').textContent='Search Spotify';const song=current();if(!song)return showStage(2);$('songPosition').textContent=`Song ${app.index+1} of ${app.songs.length}`;$('currentSongTitle').textContent=song.title;$('currentSongSubtitle').textContent=song.extra?'Extra · appended at end of set list':'Select a recording, or skip this song.';$('matchProgress').style.width=(100*(app.index+1)/app.songs.length)+'%';$('searchTerm').value=song.title;$('manualLink').value='';results=[];candidate=app.selected[app.index]||null;$('backSongBtn').disabled=app.index===0;$('nextSongBtn').disabled=!(candidate&&candidate!=='skip');$('nextSongBtn').textContent=app.index===app.songs.length-1?'Confirm & review →':'Use this recording →';$('matchSource').textContent=token?'Live Spotify':'Offline catalog';$('resultsNote').textContent=token?'Press Search to query Spotify.':'Offline examples only. For initial choices for every song, connect Spotify in Settings.';$('results').replaceChildren();if(candidate==='skip'){$('resultsNote').textContent='Previously skipped. Search to choose a recording, or skip again.'}else if(candidate){results=[candidate];renderResults()}searchTracks(song.title,true).catch(e=>flash(e.message,'error'))}
+function renderResults(){let root=$('results');root.replaceChildren();let sorted=[...results].sort((a,b)=>rank(b,$('searchTerm').value)-rank(a,$('searchTerm').value));$('resultsNote').textContent=sorted.length?`${sorted.length} matching recordings · ${token?'Spotify live search':'offline demo catalog'}`:'No matching recordings. Try another artist, title or Spotify track URL.';for(const t of sorted){const selected=candidate&&candidate.id===t.id;const div=document.createElement('div');div.className='result'+(selected?' selected':'');let img=t.album?.images?.[0]?.url;div.innerHTML=`<span class="radio" aria-hidden="true"></span>${img?`<img alt="" src="${htmlEsc(img)}">`:'<div style="width:58px;height:58px;background:#2c3d49;display:grid;place-items:center;border-radius:7px">♫</div>'}<div class="info"><div class="title">${htmlEsc(t.name)}</div><div>${htmlEsc(trackArtist(t))}</div><div class="meta">${htmlEsc(t.album?.name||'')}</div>${t.susanNames?.length?`<div class="tag">★ Susan: ${htmlEsc(t.susanNames.join(', '))}</div>`:''}</div>`;div.onclick=()=>{candidate=t;$('nextSongBtn').disabled=false;renderResults()};let a=document.createElement('a');a.href=trackUrl(t);a.target='_blank';a.rel='noopener noreferrer';a.className='btn sm ghost';a.textContent='Listen on Spotify ↗';a.onclick=e=>e.stopPropagation();div.append(a);root.append(div)}}
+async function searchTracks(term,initial=false){logEvent('search',`song=${app.index+1} query=${term}; Spotify limit=10`);
+  const request=++searchSerial, songIndex=app.index;
+  busy=true;$('searchBtn').disabled=true;
+  $('searchBtn').innerHTML='<span class="loading"></span> Searching';
+  $('resultsNote').textContent=token?'Searching Spotify catalog…':'Searching the limited offline example catalog…';
+  try{
+    let found=[];
+    if(token){
+      const data=await api('/search?'+new URLSearchParams({q:term,type:'track',limit:'10'}));
+      found=data.tracks?.items||[];
+      // Only add Susan tracks that match the SONG, not unrelated artist search terms.
+      const songTitle=(current()?.title||'').toLowerCase();
+      const local=app.susanTracks.filter(t=>t.name.toLowerCase().includes(songTitle)||songTitle.includes(t.name.toLowerCase()));
+      const dict=new Map([...found,...local].filter(t=>t?.id).map(t=>[t.id,t]));
+      const susanMap=new Map(app.susanTracks.map(t=>[t.id,t.susanNames||[]]));
+      found=[...dict.values()].map(t=>({...t,susanNames:susanMap.get(t.id)||[]}));
+    }else{
+      const normalized=term.toLowerCase().trim();
+      const tokens=normalized.split(/\s+/).filter(x=>x.length>2);
+      found=demoTracks.filter(t=>{
+        const hay=(t.name+' '+trackArtist(t)+' '+t.album.name).toLowerCase();
+        return tokens.length>0&&tokens.every(w=>hay.includes(w));
+      }).sort((a,b)=>rank(b,term)-rank(a,term));
+    }
+    if(request!==searchSerial||songIndex!==app.index)return;
+    results=found;
+    if(candidate&&candidate!=='skip'&&!results.some(t=>t.id===candidate.id))results.unshift(candidate);
+    renderResults();
+    if(!token){
+      $('resultsNote').textContent=found.length
+        ?`${found.length} example recording(s). This is NOT a live Spotify search. Connect Spotify in Settings for all songs and artists.`
+        :'No examples for this search. Connect Spotify in Settings to search its full catalog, or paste a track link.';
+    }
+  }catch(e){
+    if(request!==searchSerial)return;
+    $('resultsNote').textContent='Search failed: '+e.message;
+    flash('Spotify search failed: '+e.message,'error');
+  }finally{
+    if(request===searchSerial){
+      busy=false;$('searchBtn').disabled=false;$('searchBtn').textContent='Search Spotify';
+    }
+  }
+}
+function renderReview(){const root=$('reviewItems');root.replaceChildren();app.songs.forEach((s,i)=>{const t=app.selected[i];const row=document.createElement('div');row.className='review-row';row.innerHTML=`<span class="index">${i+1}.</span><div class="main"><b>${htmlEsc(s.title)}</b><div class="small">${t&&t!=='skip'?`${htmlEsc(t.name)} · ${htmlEsc(trackArtist(t))}`:'Skipped'}</div></div>${s.extra?'<span class="pill">Extra</span>':''}`;const change=document.createElement('button');change.className='btn sm ghost';change.textContent='Edit';change.onclick=()=>{app.index=i;showStage(1)};row.append(change);root.append(row)});$('playlistName').value=app.playlistName||'';$('createdLink').classList.add('hidden');$('createBtn').disabled=!token}
+function tokenValid(){return token&&token.access_token&&Date.now()<token.expires_at-45000}async function refresh(){if(!token?.refresh_token)throw Error('Spotify session expired. Connect again.');const body=new URLSearchParams({grant_type:'refresh_token',refresh_token:token.refresh_token,client_id:app.clientId});const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});const d=await r.json();logEvent('oauth-token-response',`HTTP ${r.status} success=${r.ok}`);if(!r.ok)throw Error(d.error_description||'Could not refresh Spotify authorization');token={...token,...d,refresh_token:d.refresh_token||token.refresh_token,expires_at:Date.now()+d.expires_in*1000};sessionStorage.setItem(TOKEN,JSON.stringify(token));setBadge()}
+async function api(path,opts={}){logEvent('spotify-request',`${opts.method||'GET'} ${path.split('?')[0]}`);if(!token?.access_token)throw Error('Connect Spotify in settings first.');if(!tokenValid())await refresh();let response=await fetch('https://api.spotify.com/v1'+path,{...opts,headers:{Authorization:'Bearer '+token.access_token,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});if(response.status===429){let seconds=Number(response.headers.get('Retry-After')||0);throw Error(`Spotify rate limit reached. Retry after ${seconds||'a few'} seconds.`)}logEvent('spotify-response',`${opts.method||'GET'} ${path.split('?')[0]} HTTP ${response.status}`);const content=await response.text();let data;try{data=content?JSON.parse(content):{}}catch{data={message:content}}if(!response.ok)throw Error(data.error?.message||data.message||`Spotify API HTTP ${response.status}`);return data}
+async function sha256(s){let bytes=new TextEncoder().encode(s);let digest=await crypto.subtle.digest('SHA-256',bytes);return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function randomString(n){const b=crypto.getRandomValues(new Uint8Array(n));return Array.from(b,x=>'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'[x%66]).join('')}
+async function connect(){logEvent('oauth','connect clicked; local='+isLocalServer()+' redirect='+redirectUri());if(!isLocalServer())return flash('Use the included desktop launcher for Spotify login. A file:// HTML page cannot complete Spotify OAuth.','warning');const id=$('clientId').value.trim();if(!/^[0-9a-f]{32}$/i.test(id))return flash('Enter the 32-character Spotify Client ID from your developer dashboard.','warning');app.clientId=id;save();const verifier=randomString(96),state=randomString(28),challenge=await sha256(verifier),redirect=redirectUri();sessionStorage.setItem(PKCE,JSON.stringify({verifier,state,redirect}));let url='https://accounts.spotify.com/authorize?'+new URLSearchParams({client_id:id,response_type:'code',redirect_uri:redirect,scope:'playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public',code_challenge_method:'S256',code_challenge:challenge,state,show_dialog:'false'});logEvent('oauth','redirecting to Spotify authorization');location.assign(url)}
+async function authCallback(){logEvent('oauth-callback',`code-present=${new URLSearchParams(location.search).has('code')} error-present=${new URLSearchParams(location.search).has('error')}`);let params=new URLSearchParams(location.search);if(params.has('error')){flash('Spotify authorization declined: '+params.get('error'),'error');history.replaceState(null,'',location.pathname);return}if(!params.has('code'))return;let info=JSON.parse(sessionStorage.getItem(PKCE)||'null');if(!info||info.state!==params.get('state')){flash('Spotify login could not be validated (state mismatch). Retry Connect.','error');return}try{const body=new URLSearchParams({grant_type:'authorization_code',code:params.get('code'),redirect_uri:info.redirect,client_id:app.clientId,code_verifier:info.verifier});const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});const d=await r.json();logEvent('oauth-token-response',`HTTP ${r.status} success=${r.ok}`);if(!r.ok)throw Error(d.error_description||d.error||'Token exchange failed');token={...d,expires_at:Date.now()+d.expires_in*1000};sessionStorage.setItem(TOKEN,JSON.stringify(token));sessionStorage.removeItem(PKCE);history.replaceState(null,'',location.pathname);setBadge();await testConnection();flash('Spotify authorized. Loading Susan playlists…','success');await loadSusan()}catch(e){logEvent('oauth-error',e.message);flash('Could not finish Spotify sign-in: '+e.message,'error')}}
+async function loadSusan(){app.susanTracks=[];app.susanNames=[];app.susanLoaded=false;try{let next='/me/playlists?limit=50',playlists=[];for(let i=0;next&&i<25;i++){let d=await api(next);playlists.push(...(d.items||[]));next=d.next?new URL(d.next).pathname.replace('/v1','')+new URL(d.next).search:null}let matching=playlists.filter(x=>/susan/i.test(x.name||''));app.susanNames=matching.map(x=>x.name);const byId=new Map();for(const p of matching){let url=`/playlists/${encodeURIComponent(p.id)}/items?limit=50`;for(let page=0;url&&page<50;page++){try{let d=await api(url);for(let entry of d.items||[]){const t=entry.item||entry.track;if(t?.type==='track'&&t.id){if(!byId.has(t.id))byId.set(t.id,{...t,susanNames:[]});byId.get(t.id).susanNames.push(p.name)}}url=d.next?new URL(d.next).pathname.replace('/v1','')+new URL(d.next).search:null}catch(e){flash(`Couldn't read Susan playlist “${p.name}”: ${e.message}`);break}}}app.susanTracks=[...byId.values()];app.susanLoaded=true;$('susanStatus').textContent=`Loaded ${matching.length} Susan playlists, ${app.susanTracks.length} unique tracks`;flash(`Spotify connected · ${matching.length} Susan playlists found, ${app.susanTracks.length} tracks indexed.`,'success')}catch(e){flash('Connected, but could not index Susan playlists: '+e.message,'warning')}}
+async function validateLink(){const text=$('manualLink').value.trim();const match=text.match(/(?:open\.spotify\.com\/track\/|spotify:track:)([a-zA-Z0-9]{22})/);if(!match)return flash('Paste a Spotify track link, not an album or playlist URL.','warning');try{const id=match[1];const t=token?await api('/tracks/'+id):demoTracks.find(t=>t.id===id);if(!t)throw Error('Connect Spotify to validate a track not in the demo catalog.');candidate=t;results=[t,...results.filter(x=>x.id!==id)];renderResults();$('nextSongBtn').disabled=false}catch(e){flash(e.message,'error')}}
+async function createPlaylist(){const name=$('playlistName').value.trim();if(!name)return flash('Give the new playlist a name.','warning');app.playlistName=name;save();if(!token)return flash('Connect to Spotify before creating a real playlist. You can export your selections meanwhile.','warning');const uris=app.songs.map((s,i)=>app.selected[i]).filter(x=>x&&x!=='skip').map(trackUri);if(!uris.length)return flash('Choose at least one recording before creating the playlist.');$('createBtn').disabled=true;$('createBtn').innerHTML='<span class="loading"></span> Creating…';let created=null,added=0;try{const publicVal=$('makePublic').checked;created=await api('/me/playlists',{method:'POST',body:JSON.stringify({name,public:publicVal,description:'Built in Spotify Setlist Builder; songs in set-list order'})});if(!created?.id)throw Error('Spotify did not return a playlist ID.');for(let i=0;i<uris.length;i+=100){await api(`/playlists/${encodeURIComponent(created.id)}/items`,{method:'POST',body:JSON.stringify({uris:uris.slice(i,i+100)})});added+=Math.min(100,uris.length-i)}const link=created.external_urls?.spotify||`https://open.spotify.com/playlist/${created.id}`;$('createdLink').innerHTML=`✓ Created <b>${htmlEsc(name)}</b> with ${added} songs. <a target="_blank" rel="noopener noreferrer" href="${htmlEsc(link)}">Open in Spotify ↗</a>`;$('createdLink').classList.remove('hidden');flash(`Playlist created successfully: ${added} tracks.`,'success')}catch(e){flash(`Playlist creation ${created?.id?`partially completed (${added}/${uris.length} tracks added to playlist ${created.id})`:'failed'}: ${e.message}. Do not click Create again without checking Spotify for duplicates.`,'error')}finally{$('createBtn').disabled=false;$('createBtn').textContent='Create Spotify playlist →'}}
+function exportSelections(){let data={name:$('playlistName').value||'',songs:app.songs.map((s,i)=>({title:s.title,extra:s.extra,selection:app.selected[i]&&app.selected[i]!=='skip'?{name:app.selected[i].name,artist:trackArtist(app.selected[i]),url:trackUrl(app.selected[i]),uri:trackUri(app.selected[i])}:null}))};let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='spotify-setlist-selections.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1500)}
+$('debugToggle').onclick=()=>{debugOn=!debugOn;localStorage.setItem(DEBUG_STORE,String(debugOn));refreshDebug();logEvent('debug', 'logging enabled')};
+$('debugSave').onclick=saveDebugFile;
+$('debugDownload').onclick=downloadDebug;
+$('debugClear').onclick=()=>{debugEntries=[];if($('debugPreview'))$('debugPreview').textContent='';logEvent('debug','log cleared');if(debugHandle)queueDebugWrite()};
+refreshDebug();logEvent('startup',`url=${location.origin+location.pathname} browser=${navigator.userAgent}`);
+$('parseBtn').onclick=()=>{let raw=$('setlistText').value;app.raw=raw;save();renderPreview()};$('sampleBtn').onclick=()=>{$('setlistText').value='Set 1\n1. Fly Me to the Moon\n2. The Look of Love\n\nSet 2\n1. Autumn Leaves\n\nExtras\nMisty';renderPreview()};$('editListBtn').onclick=()=>{$('parsedPreview').classList.add('hidden');$('setlistText').focus()};$('startBtn').onclick=()=>{let p=parse($('setlistText').value);app.raw=$('setlistText').value;app.songs=p.songs;app.index=0;app.selected={};showStage(1)};$('settingsBtn').onclick=showSettings;$('headerConnectBtn').onclick=showSettings;$('quickConnectBtn').onclick=showSettings;$('testConnectionBtn').onclick=()=>testConnection();$('cancelSettingsBtn').onclick=()=>showStage(app.stage);$('copyRedirectBtn').onclick=()=>navigator.clipboard.writeText($('redirectUri').value).then(()=>flash('Redirect URI copied.','success')).catch(()=>flash('Select and copy the Redirect URI manually.')) ;$('connectBtn').onclick=()=>connect().catch(e=>flash(e.message,'error'));$('logoutBtn').onclick=()=>{token=null;sessionStorage.removeItem(TOKEN);app.susanLoaded=false;app.susanTracks=[];app.susanNames=[];setBadge();flash('Disconnected from Spotify.','success')};$('resetBtn').onclick=()=>{if(!confirm('Start a new set list? This clears current selections.'))return;app.songs=[];app.selected={};app.index=0;app.raw='';app.playlistName='';$('setlistText').value='';$('parsedPreview').classList.add('hidden');showStage(0)};$('searchBtn').onclick=()=>searchTracks($('searchTerm').value.trim()||current().title);$('searchTerm').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('searchBtn').click()}});$('validateLinkBtn').onclick=validateLink;$('manualLink').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();validateLink()}});$('backSongBtn').onclick=()=>{app.index=Math.max(0,app.index-1);showStage(1)};$('skipBtn').onclick=()=>{app.selected[app.index]='skip';app.index++;showStage(app.index>=app.songs.length?2:1)};$('nextSongBtn').onclick=()=>{if(!candidate||candidate==='skip')return;app.selected[app.index]=candidate;app.index++;showStage(app.index>=app.songs.length?2:1)};$('reviewBackBtn').onclick=()=>{app.index=app.songs.length-1;showStage(1)};$('exportBtn').onclick=exportSelections;$('createBtn').onclick=createPlaylist;
+restore();$('setlistText').value=app.raw;setBadge();showStage(0);
+(async function startupSpotify(){
+  const callbackParams=new URLSearchParams(location.search);
+  const isCallback=callbackParams.has('code')||callbackParams.has('error');
+  if(isCallback){
+    logEvent('startup-auth','Spotify callback detected; processing before any new login');
+    await authCallback();
+    return;
+  }
+  if(!app.clientId||!/^[0-9a-f]{32}$/i.test(app.clientId)){
+    logEvent('startup-auth','No valid saved Client ID; manual one-time setup required');
+    return;
+  }
+  if(!isLocalServer()){
+    logEvent('startup-auth','Saved Client ID found, but page is not on localhost/HTTPS');
+    showSettings();
+    return;
+  }
+  if(token){
+    try{
+      if(!tokenValid())await refresh();
+      await testConnection();
+      logEvent('startup-auth','Existing Spotify session verified');
+      return;
+    }catch(e){
+      logEvent('startup-auth','Existing session failed; starting fresh authorization: '+e.message);
+      token=null;sessionStorage.removeItem(TOKEN);setBadge();
+    }
+  }
+  // No valid session, but the user's existing Client ID is already configured.
+  // Start PKCE authorization immediately rather than waiting for Connect click.
+  showSettings();
+  logEvent('startup-auth','Saved API settings found; automatically opening Spotify authorization');
+  await connect();
+})().catch(e=>{logEvent('startup-auth-error',e.message);showSettings();flash('Spotify automatic connection failed: '+e.message,'error')});
+})();
+</script><a href="index.html" style="position:fixed;bottom:16px;right:16px;z-index:999999;background:#123147;color:white;padding:10px 15px;border-radius:24px;text-decoration:none;font:600 13px system-ui;box-shadow:0 3px 12px #0003">⌂ Music Utilities</a></body></html>
