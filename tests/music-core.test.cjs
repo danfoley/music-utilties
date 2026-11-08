@@ -38,7 +38,7 @@ for (const mode of ["fourths", "random"]) {
   assert.ok(picks[0].startsWith("Eb"));
   if (mode === "fourths") {
     const roots = picks.map((chord) =>
-      selectedQualities.map((quality) => chord.endsWith(quality) ? chord.slice(0, -quality.length) : null).find(Boolean));
+      mixedDefinition.strategy.roots.find((root) => selectedQualities.some((quality) => chord === root + quality)));
     for (let i = 1; i < roots.length; i++)
       assert.equal(jazz.PITCH[roots[i]], (jazz.PITCH[roots[i-1]] + 5) % 12);
   }
